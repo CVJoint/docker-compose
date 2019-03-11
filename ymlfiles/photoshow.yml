@@ -1,0 +1,46 @@
+version: "3.7"
+services:
+
+## Photoshow - Photo Gallery Software
+  photoshow:
+    container_name: photoshow
+    image: linuxserver/photoshow
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    volumes:
+      - ${USERDIR}/docker/photoshow/config:/config
+      - ${USERDIR}/Pictures:/Pictures:ro
+      - photoshow_thumbs:/Thumbs
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=photoshow"
+      - "traefik.frontend.rule=Host:photoshow.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=photoshow.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+volumes:
+  photoshow_thumbs:
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

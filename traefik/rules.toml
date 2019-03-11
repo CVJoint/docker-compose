@@ -1,0 +1,23 @@
+## Connect to your pihole running on an external device (raspberry pi)
+
+[backends]
+  [backends.pihole]
+    [backends.pihole.servers]
+      [backends.pihole.servers.server-pihole-ext]
+        url = "http://192.168.1.222"
+
+[frontends]
+  [frontends.pihole]
+    backend = "pihole"
+    passHostHeader = true
+#      [frontends.pihole.auth.basic]
+#        usersFile = "/shared/.htpasswd"
+      [frontends.pihole.auth]
+      headerField = "X-WebAuth-User"
+        [frontends.pihole.auth.forward]
+          address = "http://oauth:4181"
+          trustForwardHeader = true
+          authResponseHeaders = ["X-Auth-User"]
+      [frontends.pihole.routes]
+        [frontends.pihole.routes.route-pihole-ext]
+          rule = "Host:pihole.<YOUR DOMAIN>;AddPrefix:/admin"

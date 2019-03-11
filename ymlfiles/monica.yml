@@ -1,0 +1,58 @@
+version: "3.7"
+services:
+
+## MonicaHQ - Personal Relationship Manager
+  ## Create Env File
+    # curl -sS https://raw.githubusercontent.com/monicahq/monica/master/.env.example --create-dirs -o ${USERDIR}/docker/monica/monica.env
+  # Open the monica.env file and change the following:
+    # APP_ENV=production
+    # APP_KEY= # Use the code below to generate this
+      # date +%s | sha256sum | base64 | head -c 32 ; echo
+    # HASH_SALT=ChangeMeBy20+KeyLength
+      # I changed the above to a 20 character string HASH_SALT=20chars. Not sure if this is right or if its needed
+      #   date +%s | sha256sum | base64 | head -c 20 ; echo
+    # HASH_LENGTH=20
+    # APP_URL=https://monica.${DOMAINNAME}
+    # DB_HOST=mariadb
+    # DB_USERNAME=monica
+    # DB_PASSWORD=<password>
+    # APP_DISABLE_SIGNUP=false
+      # Change the above to true after setup
+    # APP_TRUSTED_PROXIES=*
+  # Run container, register, and return to home page
+  monica:
+    container_name: monica
+    image: monicahq/monicahq
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    volumes:
+      - ${USERDIR}/docker/monica/storage:/var/www/monica/storage
+      - ${USERDIR}/docker/shared:/shared
+    env_file:
+      - ${USERDIR}/docker/monica/monica.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=monica"
+      - "traefik.frontend.rule=Host:monica.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=monica.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.passHostHeader=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

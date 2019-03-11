@@ -1,0 +1,53 @@
+version: "3.7"
+services:
+
+## Dolphin - File Browser
+  # mkdir ${USERDIR}/docker/dolphin
+  # There are a lot of errors in the logs, but this works
+  # Folder mounted to /mnt is available at /mnt (not the Home directory)
+  dolphin:
+    container_name: dolphin
+    image: aptalca/docker-dolphin
+    restart: always
+    privileged: "true"
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "3389:3389"
+#      - "8080:8080"
+    volumes:
+      - ${USERDIR}/docker/dolphin:/config:rw
+      - ${USERDIR}/Downloads:/mnt:rw
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - USER_ID=${PUID}
+      - GROUP_ID=${PGID}
+      - TZ=${TZ}
+      - WIDTH="1280"
+      - HEIGHT="720"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=dolphin"
+      - "traefik.frontend.rule=Host:dolphin.${DOMAINNAME}"
+      - "traefik.port=8080"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=dolphin.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+#      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.passHostHeader=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+volumes:
+  dolphin_config:
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

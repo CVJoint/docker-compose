@@ -1,0 +1,67 @@
+version: "3.7"
+services:
+
+## Postgres - Database
+  postgres:
+    hostname: postgres
+    container_name: postgres
+    image: postgres
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "5432:5432"
+    volumes:
+      - ${USERDIR}/docker/postgres:/var/lib/postgresql/data
+      - /etc/timezone:/etc/timezone:ro
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - POSTGRES_PASSWORD=${MYSQL_ROOT_PASSWORD}
+
+## PGAdmin - Postgres Admin Tool
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+#      - "443:443"
+    volumes:
+#      - pgadmin_data:/var/lib/pgadmin
+#      - pgadmin_config:/pgadmin4/config_local.py
+#      - pgadmin_servers:/pgadmin4/servers.json
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=YOUR EMAIL
+      - PGADMIN_DEFAULT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+#      - PGADMIN_ENABLE_TLS= # Can configure with certs
+      - PGADMIN_LISTEN_PORT=80 # Can configure with certs
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=pgadmin"
+      - "traefik.frontend.rule=Host:pgadmin.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=pgadmin.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+volumes:
+  pgadmin_data:
+  pgadmin_config:
+  pgadmin_servers:
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

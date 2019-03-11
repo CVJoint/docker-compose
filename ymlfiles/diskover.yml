@@ -1,0 +1,83 @@
+version: "3.7"
+services:
+
+## Add Redis
+
+## Diskover - Disk Space Usage Manager / Search Tool
+  diskover:
+    container_name: diskover
+    image: linuxserver/diskover
+    restart: always
+    depends_on:
+      - elasticsearch
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+#      - "9181:9181"
+#      - "9999:9999"
+    volumes:
+      - ${USERDIR}/docker/diskover/config:/config
+      - ${USERDIR}/Downloads:/data:ro
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - ES_HOST=elasticsearch
+      - ES_PORT=9200
+      - ES_USER=elastic
+      - ES_PASS=changeme # I think I had to keep the password as changeme for it to work... still need to test
+      - INDEX_NAME=diskover
+      - RUN_ON_START=true
+      - USE_CRON=true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=diskover"
+      - "traefik.frontend.rule=Host:diskover.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=diskover.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+## Elasticsearch - Search and Analytics Engine
+  # On linux machine you need to enter the command below because the standard value of 65530 is too low (error in logs)
+    # sudo sysctl -w vm.max_map_count=262144
+  # If you get the warning "Failed to create node environment" you need to make sure permissions are set to 1000:1000 on the data folder
+    # sudo chown -R 1000:1000 ${USERDIR}/docker/elasticsearch/
+  elasticsearch:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.9
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "9200:9200"
+#      - "9300:9300"
+    ulimits:
+      memlock:
+        soft: '-1'
+        hard: '-1'
+    volumes:
+      - ${USERDIR}/docker/elasticsearch/data:/usr/share/elasticsearch/data
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - bootstrap.memory_lock=true
+      - cluster.name=docker-cluster
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

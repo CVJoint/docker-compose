@@ -1,0 +1,44 @@
+version: "3.7"
+services:
+
+## Emby Media Server
+  emby:
+    container_name: emby
+    image: emby/embyserver:beta
+    restart: always
+    networks:
+      - traefik_proxy
+    ports:
+      - "8096:8096"
+      - "8920:8920"
+    volumes:
+      - /path/to/movies:/MOVIES
+      - /path/to/tvshows:/TVSHOWS
+      - /path/to/any/other/content:/ENTER CUSTOM NAME
+      - ${USERDIR}/docker/emby:/config
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - UID=${PUID}
+      - GID=${PGID}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=emby"
+      - "traefik.frontend.rule=Host:emby.${DOMAINNAME}"
+      - "traefik.port=8096"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=emby.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+#      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

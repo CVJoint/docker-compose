@@ -1,0 +1,42 @@
+version: "3.7"
+services:
+
+## Soulseek - P2P Media Service
+  soulseek:
+    container_name: soulseek
+    image: realies/soulseek
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "6080:6080"
+    volumes:
+      - ${USERDIR}/docker/soulseek/SoulseekQt:/root/.SoulseekQt
+      - ${USERDIR}/docker/soulseek/chatlog:/root/Soulseek Chat Log
+      - ${USERDIR}/Music:/root/Soulseek Downloads
+      - /etc/timezone:/etc/timezone:ro
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - resolution=1280x720
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=soulseek"
+      - "traefik.frontend.rule=Host:soulseek.${DOMAINNAME}"
+      - "traefik.port=6080"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=soulseek.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

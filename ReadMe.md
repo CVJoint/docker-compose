@@ -2,7 +2,9 @@
 
 -------
 
-My docker-compose setup is managed by two files - **dup.sh** and **ddown.sh**, which I keep stored in my home (aka ${USERDIR}) folder.
+My docker-compose setup is managed by two files - **dup.sh** and **ddown.sh**, which I store in my home (aka ${USERDIR}) folder.
+
+I keep my docker-compose files in a folder called **ymlfiles**, and reference it's location in my **dup.sh** file.
 
 Using these files I comment or uncomment the containers that I want to bring up, and then launch them with
 `bash dup.sh` from the home directory.
@@ -12,8 +14,9 @@ Normally I will simply type `bash du` + Tab or `bash dd` + Tab to bring them up 
 This method allows for easy control and flexibility over which containers are running, and saves me from having to comment out several lines within a single docker-compose.yml. I like to think that it 'containerizes your containers' and allows you to work on a single file, which has been much simpler to modify.
 
 
-When creating my compose files I've tried to take notes along the way - hopefully you'll find them helpful.
+
+I've tried to add notes to many of my files in order to bring them up easily - hopefully you'll find them helpful.
 
 -------
 
-If you have a suggestion on how something could be improved, please drop me a line on reddit. Thanks!
+If you have a suggestion on how something could be improved, please drop me a line on reddit!

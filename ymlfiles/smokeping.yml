@@ -1,0 +1,41 @@
+version: "3.7"
+services:
+
+## SmokePing - Network Latency
+  smokeping:
+    container_name: smokeping
+    image: linuxserver/smokeping
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    volumes:
+      - ${USERDIR}/docker/smokeping/config:/config
+      - ${USERDIR}/docker/smokeping/data:/data
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=smokeping"
+      - "traefik.frontend.rule=Host:smokeping.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=smokeping.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

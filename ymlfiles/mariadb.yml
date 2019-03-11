@@ -1,0 +1,69 @@
+version: "3.7"
+services:
+
+## Mariadb – Database Server
+  # Suggested procedure to create new databases:
+  # Replace <these values>
+    # docker exec -it mariadb mysql -uroot -p
+    # CREATE DATABASE <database name> CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
+    # GRANT ALL PRIVILEGES ON <database name>.* TO '<user>'@'<container>.traefik_proxy'IDENTIFIED BY '<password>';
+    # FLUSH PRIVILEGES;
+    # exit
+  mariadb:
+    hostname: mariadb
+    container_name: mariadb
+    image: linuxserver/mariadb
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "3306:3306"
+    volumes:
+      - ${USERDIR}/docker/mariadb:/config
+      - /etc/timezone:/etc/timezone:ro
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+
+## phpMyAdmin - WebUI for MariaDB
+  phpmyadmin:
+    hostname: phpmyadmin
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    depends_on:
+      - mariadb
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    environment:
+#      - PMA_ARBITRARY=1 # Allows you to enter a database server hostname on login form
+      - PMA_HOST=mariadb
+      - PMA_USER=root
+      - PMA_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - PMA_ABSOLUTE_URI=https://phpmyadmin.${DOMAINNAME}/
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=phpmyadmin"
+      - "traefik.frontend.rule=Host:phpmyadmin.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=phpmyadmin.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

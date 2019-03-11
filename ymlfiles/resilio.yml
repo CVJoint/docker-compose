@@ -1,0 +1,45 @@
+version: "3.7"
+services:
+
+## Resilio - Bittorrent style folder sync
+  resilio:
+    container_name: resilio
+    image: linuxserver/resilio-sync
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "8888:8888"
+#      - "55555:55555"
+    volumes:
+      - ${USERDIR}/docker/resilio/config:/config
+      - ${USERDIR}/docker/resilio/sync:/sync
+      - ${USERDIR}/docker/resilio/downloads:/downloads
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK_SET=002
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=resilio"
+      - "traefik.frontend.rule=Host:resilio.${DOMAINNAME}"
+      - "traefik.port=8888"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=resilio.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

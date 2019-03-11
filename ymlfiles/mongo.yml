@@ -1,0 +1,53 @@
+version: "3.7"
+services:
+
+## MongoDB - Database
+  mongo:
+    container_name: mongo
+    image: mongo
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "27017:27017"
+    volumes:
+      - ${USERDIR}/docker/mongo:/data/db
+      - /etc/timezone:/etc/timezone:ro
+      - ${USERDIR}/docker/shared:/shared
+
+## Mongo-Express - Database Manager
+  mongoexpress:
+    container_name: mongoexpress
+    image: mongo-express
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "8081:8081"
+    volumes:
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - ME_CONFIG_BASICAUTH_USERNAME=USERNAME
+      - ME_CONFIG_BASICAUTH_PASSWORD=PASSWORD
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=mongoexpress"
+      - "traefik.frontend.rule=Host:mongoexpress.${DOMAINNAME}"
+      - "traefik.port=8081"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=mongoexpress.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

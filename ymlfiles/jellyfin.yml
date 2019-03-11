@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+
+## Jellyfin - Media Server
+  jellyfin:
+    container_name: jellyfin
+    image: jellyfin/jellyfin:latest
+    restart: always
+    networks:
+      - traefik_proxy
+    ports:
+      - "8096:8096"
+      - "8920:8920"
+    volumes:
+      - /path/to/movies:/MOVIES
+      - /path/to/tvshows:/TVSHOWS
+      - /path/to/custom/folder:/YOUR CUSTOM FOLDER
+      - ${USERDIR}/docker/jellyfin:/config
+      - ${USERDIR}/docker/shared:/shared
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=jellyfin"
+      - "traefik.frontend.rule=Host:jellyfin.${DOMAINNAME}"
+      - "traefik.port=8096"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=jellyfin.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

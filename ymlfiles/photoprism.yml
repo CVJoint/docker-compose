@@ -1,0 +1,46 @@
+version: "3.7"
+services:
+
+## Photoprism
+  # Import photos:
+  # docker exec -it photoprism photoprism import
+  photoprism:
+    container_name: photoprism
+    image: photoprism/photoprism
+    restart: always
+    external_links:
+      - mariadb
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    volumes:
+      - ${USERDIR}/Photoprism:/srv/photoprism/photos
+      - photoprism_cache:/srv/photoprism/cache
+      - ${USERDIR}/docker/photoprism/database:/srv/photoprism/database
+      - ${USERDIR}/docker/shared:/shared
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=photoprism"
+      - "traefik.frontend.rule=Host:photoprism.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=photoprism.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+volumes:
+  photoprism_cache:
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

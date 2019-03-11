@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+
+## Wetty - SSH over the web
+  wetty:
+    container_name: wetty
+    image: svenihoney/wetty
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#     - "80:80"
+    environment:
+      - VIRTUAL_HOST=wetty.${DOMAINNAME}
+      - VIRTUAL_PORT=3000
+      - REMOTE_SSH_SERVER=192.168.1.125 # IP of server you want to ssh into
+      - REMOTE_SSH_PORT=22
+      - REMOTE_SSH_USER=YOUR USER
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=wetty"
+      - "traefik.frontend.rule=Host:wetty.${DOMAINNAME}"
+      - "traefik.port=3000"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=wetty.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

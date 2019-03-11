@@ -1,0 +1,79 @@
+version: "3.7"
+services:
+
+## Taskserver - Server for TaskWarrior
+  # Seems to work without, but you may need to follow setup described here: https://hub.docker.com/r/lukd/taskwarrior
+  taskserver:
+    container_name: taskserver
+    image: lukd/taskwarrior
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "53589:53589"
+    volumes:
+      - ${USERDIR}/docker/taskwarrior/data:/data
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - "TASKD_BITS=4096"
+      - "TASKD_EXPIRATION=365"
+      - "TASKD_ORGANIZATION=My Organization"
+      - "TASKD_CN=taskserver.${DOMAINNAME}"
+      - "TASKD_COUNTRY=US"
+      - "TASKD_STATE=ENTER STATE"
+      - "TASKD_LOCALITY=ENTER CITY"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=taskserver"
+      - "traefik.frontend.rule=Host:taskserver.${DOMAINNAME}"
+      - "traefik.port=53589"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=taskwarrior.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+## Taskwarrior - Task Manager
+  taskwarrior:
+    container_name: taskwarrior
+    image: hav0k/taskwarrior-web
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "5678:5678"
+    volumes:
+      - ${USERDIR}/docker/taskwarrior/task-web:/root/.task
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      # Sync server:
+      - TASKD_SERVER='taskserver.${DOMAINNAME}'
+      - TASKD_CREDENTIALS='AlphaV/Alexey Vildyaev/uid' # Not sure what this is
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=taskwarrior"
+      - "traefik.frontend.rule=Host:taskwarrior.${DOMAINNAME}"
+      - "traefik.port=5678"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=${DOMAINNAME}"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

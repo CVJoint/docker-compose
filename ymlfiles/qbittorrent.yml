@@ -1,0 +1,57 @@
+version: "3.7"
+services:
+
+## qBittorrent with VPN – Bittorrent Downloader
+  # mkdir ${USERDIR}/docker/qbittorrent
+  # mkdir ${USERDIR}/docker/qbittorrent/openvpn
+  # Place ovpn file in ${USERDIR}/docker/qbittorrent/openvpn
+  # If you can't see text in the WebUI go to your qbittorrent.conf file and add "en" to the Locale setting so it looks like this: General\Locale=en
+  qbittorrent:
+    container_name: qbittorrent
+    image: markusmcnugen/qbittorrentvpn
+    restart: always
+    networks:
+      - traefik_proxy
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+#    ports:
+#      - "8022:8080"
+#      - "8999:8999"
+#      - "8999:8999/udp"
+    volumes:
+      - /path/to/downloads:/downloads
+      - ${USERDIR}/docker/qbittorrent:/config
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - VPN_ENABLED=yes
+      - VPN_USERNAME=
+      - VPN_PASSWORD=
+      - LAN_NETWORK=192.168.1.0/24
+      - NAME_SERVERS=1.1.1.1,1.0.0.1
+      - UMASK=002
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=qbittorrent"
+      - "traefik.frontend.rule=Host:qbittorrent.${DOMAINNAME}"
+      - "traefik.port=8080"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=qbittorrent.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

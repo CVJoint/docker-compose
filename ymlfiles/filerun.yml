@@ -1,0 +1,49 @@
+version: "3.7"
+services:
+
+## FileRun - Cloud Storage
+  # Login: superuser / superuser
+  filerun:
+    container_name: filerun
+    image: afian/filerun
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    volumes:
+      - ${USERDIR}/docker/filerun/html:/var/www/html
+      - ${USERDIR}/docker/filerun/user-files:/user-files
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - FR_DB_HOST=mariadb
+      - FR_DB_PORT=3306
+      - FR_DB_NAME=filerun
+      - FR_DB_USER=filerun
+      - FR_DB_PASS=YOUR DB PASSWORD
+      # I'm not sure what the apache part is used for
+      - APACHE_RUN_USER=www-data
+      - APACHE_RUN_USER_ID=33
+      - APACHE_RUN_GROUP=www-data
+      - APACHE_RUN_GROUP_ID=33
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=filerun"
+      - "traefik.frontend.rule=Host:filerun.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=filerun.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

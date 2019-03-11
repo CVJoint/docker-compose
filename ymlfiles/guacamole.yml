@@ -1,0 +1,83 @@
+version: "3.7"
+services:
+
+## Install instructions:
+  # Start containers: MariaDB, Guacamole, Guacd (Guacd may be optional)
+  # Run: docker exec -it guacamole cp -R /opt/guacamole/mysql/schema /shared
+
+## Create Database:
+  # docker exec -it mariadb mysql -uroot -p
+# Replace password (CHANGEME) and run the following scripts to create Database and User "guacamole"
+  # CREATE DATABASE guacamole CHARACTER SET = utf8 COLLATE = utf8_general_ci;
+  # CREATE USER 'guacamole' IDENTIFIED BY 'CHANGEME';
+  # GRANT SELECT,INSERT,UPDATE,DELETE ON guacamole.* TO 'guacamole'@'%';
+  # FLUSH PRIVILEGES;
+  # exit
+
+## Populate Database:
+  # Enter MariaDB container
+    # docker exec -it mariadb bash
+  # Run:
+    # cat /shared/schema/*.sql | mysql -u root -p guacamole
+
+# Navigate to localhost:8080/guacamole or guacamole.${DOMAINNAME}/guacamole
+# Login: guacadmin / guacadmin
+# Recommended to create a new user and disable/delete guacadmin
+
+## Guacd
+  guacd:
+    hostname: guacd
+    container_name: guacd
+    image: guacamole/guacd
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "4822:4822"
+    volumes:
+      - ${USERDIR}/docker/shared:/shared
+
+## Guacamole
+  guacamole:
+    container_name: guacamole
+    image: guacamole/guacamole
+    restart: always
+    external_links:
+      - mariadb
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "8080:8080"
+    volumes:
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - GUACD_HOSTNAME=guacd
+      - GUACD_PORT=4822
+      - MYSQL_HOSTNAME=mariadb
+      - MYSQL_DATABASE=guacamole
+      - MYSQL_USER=guacamole
+      - MYSQL_PASSWORD=CHANGEME
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=guacamole"
+      - "traefik.frontend.rule=Host:guacamole.${DOMAINNAME}"
+      - "traefik.port=8080"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=guacamole.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy
+  default:
+    driver: bridge

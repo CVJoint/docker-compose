@@ -1,0 +1,45 @@
+version: "3.7"
+services:
+
+## Beets – Music Management
+  ## To import music:
+  # docker exec -it beets bash
+  # beet import /downloads
+  beets:
+    container_name: beets
+    image: linuxserver/beets
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "8337:8337"
+    volumes:
+      - /path/to/music/directory:/music
+      - /path/to/import/directory:/downloads
+      - ${USERDIR}/docker/beets:/config
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=beets"
+      - "traefik.frontend.rule=Host:beets.${DOMAINNAME}"
+      - "traefik.port=8337"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=beets.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

@@ -1,0 +1,49 @@
+logLevel = "INFO" #DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+InsecureSkipVerify = true
+defaultEntryPoints = ["http", "https"]
+
+[api]
+  entryPoint = "traefik"
+  dashboard = true
+
+[entryPoints]
+  [entryPoints.http]
+    address = ":80"
+    [entryPoints.http.redirect]
+      entryPoint = "https"
+  [entryPoints.https]
+    address = ":443"
+    [entryPoints.https.tls]
+  [entryPoints.http.auth]
+    headerField = "X-WebAuth-User"
+    [entryPoints.http.auth.forward]
+      address = "http://oauth:4181"
+      trustForwardHeader = true
+      authResponseHeaders = ["X-Auth-User"]
+
+[file]
+  filename = "/etc/traefik/rules.toml"
+  watch = true
+
+## Let's Encrypt Configuration ##
+[acme]
+  email = "YOUR EMAIL"
+  storage = "/etc/traefik/acme/acme.json"
+  entryPoint = "https"
+  acmeLogging = true
+
+# Uncomment the line below to use Let's Encrypt's staging server,
+#caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+
+[acme.dnsChallenge]
+  provider = "cloudflare"
+[[acme.domains]]
+   main = "YOUR DOMAIN"
+[[acme.domains]]
+   main = "*.YOUR DOMAIN"
+
+[docker]
+  endpoint = "unix:///var/run/docker.sock"
+  domain = "YOUR DOMAIN"
+  watch = true # Enable watch docker changes.
+  exposedbydefault = false # Containers that don't have `traefik.enable=true` will be ignored.

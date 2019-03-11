@@ -1,0 +1,90 @@
+# Reference: https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker
+# Need to start the traefik network before running:
+  # docker network create traefik_proxy
+# Trail logs using (docker logs -tf --tail="50" traefik). Change traefik to conainer you want to trail
+
+version: "3.7"
+services:
+
+## Traefik - Reverse Proxy
+  traefik:
+    hostname: traefik
+    domainname: ${DOMAINNAME}
+    container_name: traefik
+    image: traefik
+    restart: always
+    networks:
+      - traefik_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+#      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${USERDIR}/docker/traefik:/etc/traefik
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
+      - CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=traefik"
+      - "traefik.frontend.rule=Host:traefik.${DOMAINNAME}"
+      - "traefik.port=8080"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=traefik.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+## Google OAuth - Limits access to only your Google account
+  # https://hub.docker.com/r/thomseddon/traefik-forward-auth
+  # https://console.developers.google.com/
+  # Follow directions at above link. My Google settings under the Credentials tab are:
+    # Credentials: Name can be anything (mine is Traefik) and Authorized redirect URLs:  	https://oauth.${DOMAINNAME}/_oauth
+    # OAuth Concent Screen: Application Name is Traefik (think it can be anything). I entered my e-mail for support e-mail. Authorized Domains is ${DOMAINNAME}
+    # Domain Verification: ${DOMAINNAME}
+
+  oauth:
+    container_name: oauth
+    image: thomseddon/traefik-forward-auth
+    restart: always
+    networks:
+      - traefik_proxy
+    environment:
+      - CLIENT_ID=
+      - CLIENT_SECRET=
+      - SECRET= # Can be anything
+      - COOKIE_SECURE=false
+      - COOKIE_DOMAINS=${DOMAINNAME}
+      - AUTH_HOST=oauth.${DOMAINNAME}
+      - WHITELIST= # Enter Gmail accounts you want to allow access
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=oauth"
+      - "traefik.frontend.rule=Host:oauth.${DOMAINNAME}"
+      - "traefik.port=4181"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=oauth.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181" # add this to any containers you want to protect (if possible, sometimes mobile apps dont work)
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

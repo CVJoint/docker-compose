@@ -1,0 +1,66 @@
+version: "3.7"
+services:
+
+## Transmission with VPN – Bittorrent Downloader
+  # Place ovpn file in ${USERDIR}/docker/transmission
+  transmission:
+    container_name: transmission
+    image: haugene/transmission-openvpn
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "9091:9091"
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    volumes:
+      - /path/to/completed:/data/completed
+      - /path/to/incomplete:/data/incomplete
+      - /path/to/watch:/data/watch
+      - /etc/localtime:/etc/localtime:ro
+      - ${USERDIR}/docker/transmission:/data
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - OPENVPN_PROVIDER=PIA
+      - OPENVPN_USERNAME=
+      - OPENVPN_PASSWORD=
+      - WEBPROXY_ENABLED=false
+      - OPENVPN_CONFIG=CA Toronto
+      - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60 --auth-nocache
+      - TRANSMISSION_RPC_USERNAME=LOGIN USERNAME
+      - TRANSMISSION_RPC_PASSWORD=LOGIN PASSWORD
+      - TRANSMISSION_RPC_AUTHENTICATION_REQUIRED=true
+      - TRANSMISSION_RPC_HOST_WHITELIST="127.0.1.1,192.168.*.*"
+      - TRANSMISSION_UMASK=002
+      - LOCAL_NETWORK=192.168.1.0/24
+      - ENABLE_UFW=true
+      - UFW_ALLOW_GW_NET=true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=transmission"
+      - "traefik.frontend.rule=Host:transmission.${DOMAINNAME}"
+      - "traefik.port=9091"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=transmission.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

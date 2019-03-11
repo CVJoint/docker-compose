@@ -1,0 +1,45 @@
+version: "3.7"
+services:
+
+## Duplicati
+  # Need to sign in through localhost:8200 and add password and domain: duplicati.${DOMAINNAME} to Setting/Hostnames
+  duplicati:
+    container_name: duplicati
+    image: linuxserver/duplicati
+    restart: always
+    networks:
+      - traefik_proxy
+    ports: # Disable after login
+      - "8200:8200" # Disable after login
+    volumes:
+      - ${USERDIR}/docker/duplicati/config:/config
+      - ${USERDIR}/docker/duplicati/backups:/backups
+      - ${USERDIR}/docker/duplicati/source:/source
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=duplicati"
+      - "traefik.frontend.rule=Host:duplicati.${DOMAINNAME}"
+      - "traefik.port=8200"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=duplicati.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.passHostHeader=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

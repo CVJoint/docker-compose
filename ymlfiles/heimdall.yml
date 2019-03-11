@@ -1,0 +1,43 @@
+version: "3.7"
+services:
+
+## Heimdall - Homepage
+  heimdall:
+    container_name: heimdall
+    image: linuxserver/heimdall
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+#      - "443:443"
+    volumes:
+      - ${USERDIR}/docker/heimdall:/config
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=heimdall"
+      - "traefik.frontend.rule=Host:heimdall.${DOMAINNAME}"
+      - "traefik.port=443"
+      - "traefik.protocol=https"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=heimdall.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

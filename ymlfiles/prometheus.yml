@@ -1,0 +1,42 @@
+version: "3.7"
+services:
+
+## Prometheus - Systems and Service Monitoring
+  # docker run --rm --entrypoint cat prom/prometheus /etc/prometheus/prometheus.yml > ${USERDIR}/docker/prometheus/prometheus.yml
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    restart: always
+    networks:
+      - traefik_proxy
+    ports:
+      - "9090:9090"
+    volumes:
+      - ${USERDIR}/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ${USERDIR}/docker/shared:/shared
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=prometheus"
+      - "traefik.frontend.rule=Host:prometheus.${DOMAINNAME}"
+      - "traefik.port=9090"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=prometheus.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+volumes:
+  prometheus_config:
+  prometheus_data:
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

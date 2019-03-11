@@ -1,0 +1,55 @@
+version: "3.7"
+services:
+
+## Miniflux - Minimalist Feed Reader
+  # Run database migrations
+    # docker exec -it miniflux /usr/local/bin/miniflux -migrate
+  # Create the first user
+    # docker exec -it miniflux /usr/local/bin/miniflux -create-admin
+  miniflux:
+    container_name: miniflux
+    image: miniflux/miniflux
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "8080:8080"
+    volumes:
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - DATABASE_URL=postgres://miniflux:secret@db/miniflux?sslmode=disable
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=miniflux"
+      - "traefik.frontend.rule=Host:miniflux.${DOMAINNAME}"
+      - "traefik.port=8080"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=miniflux.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+  db:
+    image: postgres:10.1
+    networks:
+      - traefik_proxy
+    volumes:
+      - miniflux-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=miniflux
+      - POSTGRES_PASSWORD=secret
+
+volumes:
+  miniflux-db:
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

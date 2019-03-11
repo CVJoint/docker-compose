@@ -1,0 +1,45 @@
+version: "3.7"
+services:
+
+## Chevereto - Image Hosting
+  # Fix permissions:
+  # sudo chmod -R 766 ${USERDIR}/docker/chevereto/images
+  chevereto:
+    container_name: chevereto
+    image: nmtan/chevereto
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#     - "80:80"
+    volumes:
+      - ${USERDIR}/docker/chevereto/images:/var/www/html/images:rw
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - CHEVERETO_DB_HOST=mariadb:3306
+      - CHEVERETO_DB_USERNAME=chevereto
+      - CHEVERETO_DB_PASSWORD=YOUR DB PASSWORD
+      - CHEVERETO_DB_NAME=chevereto
+      - CHEVERETO_DB_PREFIX=chv_
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=chevereto"
+      - "traefik.frontend.rule=Host:chevereto.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=chevereto.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

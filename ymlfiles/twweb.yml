@@ -1,0 +1,44 @@
+version: "3.7"
+services:
+
+## Taskwarrior - twweb
+  twweb:
+    container_name: twweb
+    image: mgoral/twweb
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "5456:5456"
+    volumes:
+      - ${USERDIR}/docker/twweb/:/localdata
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+#      - UID=${PUID}
+#      - GID=${PGID}
+#      - TZ=${TZ}
+      - TWW_CFG_PIN=twweb # suggested to change this (pin of user)
+      - TWW_CFG_DB_ENGINE=sqlite
+      - TWW_CFG_DB_HOST=/localdata/twweb.db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=twweb"
+      - "traefik.frontend.rule=Host:twweb.${DOMAINNAME}"
+      - "traefik.port=5456"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=twweb.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

@@ -1,0 +1,108 @@
+version: "3.7"
+services:
+
+## NextCloud – Your Own Cloud Storage
+  ## Suggested to create NextCloud database using MariaDB
+    # docker exec -it mariadb mysql -uroot -p
+    # CREATE DATABASE nextcloud CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
+    # GRANT ALL PRIVILEGES ON nextcloud.* TO 'nextcloud'@'nextcloud.traefik_proxy'IDENTIFIED BY '<password>';
+    # FLUSH PRIVILEGES;
+    # exit
+  ## When signing in under Storage & database select MySQL/MariaDB and enter:
+    # Database user: your db user (nextcloud)
+    # Database password: your db password (<password>)
+    # Database name: your db name (nextcloud)
+    # localhost: mariadb:3306
+
+  ## To fix "bigint" issue:
+    # docker exec -it nextcloud sh
+    # sudo -u abc php /config/www/nextcloud/occ db:convert-filecache-bigint
+    # exit
+
+  # Redis setup in config.php: (Optional)
+    # 'memcache.local' => '\OC\Memcache\APCu',
+    # 'memcache.distributed' => '\OC\Memcache\Redis',
+    # 'memcache.locking' => '\OC\Memcache\Redis',
+    # 'redis' => array(
+    #     'host' => 'redis',
+    #     'port' => 6379,
+    # ),
+    
+  nextcloud:
+    container_name: nextcloud
+    image: linuxserver/nextcloud
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "443:443"
+    volumes:
+      - ${USERDIR}/NextCloud:/data
+      - ${USERDIR}/docker/nextcloud:/config
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=nextcloud"
+      - "traefik.frontend.rule=Host:nextcloud.${DOMAINNAME}"
+      - "traefik.port=443"
+      - "traefik.protocol=https"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=nextcloud.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customFrameOptionsValue=SAMEORIGIN"
+
+## OnlyOffice - Document Server for NextCloud
+  # Add ONLYOFFICE to NextCloud and enter server address in settings
+  onlyoffice:
+    container_name: onlyoffice
+    image: onlyoffice/documentserver
+    stdin_open: "true"
+    tty: "true"
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+#      - "443:443"
+    volumes:
+      - onlyoffice_logs:/var/log/onlyoffice
+      - onlyoffice_fonts:/usr/share/fonts/truetype/custom
+      - /etc/timezone:/etc/timezone:ro
+      - ${USERDIR}/docker/shared:/shared
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=onlyoffice"
+      - "traefik.frontend.rule=Host:onlyoffice.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=onlyoffice.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.frontend.passHostHeader=true"
+
+volumes:
+  onlyoffice_logs:
+  onlyoffice_fonts:
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

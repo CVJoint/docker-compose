@@ -1,0 +1,49 @@
+version: "3.7"
+services:
+
+## Taiga - Project Management Platform
+  # Requires postgres db - manually create db first
+  # Login: admin / 123123
+  taiga:
+    container_name: taiga
+    image: benhutchins/taiga
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    volumes:
+      - ${USERDIR}/docker/taiga/media:/usr/src/taiga-back/media
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - TAIGA_HOSTNAME=taiga.${DOMAINNAME}
+      - TAIGA_SSL_BY_REVERSE_PROXY=True
+      - TAIGA_SECRET_KEY=eSM2vj3i529sDkX
+      - TAIGA_SLEEP=15 # when the db comes up from docker, it is usually too quick
+      - TAIGA_ENABLE_EMAIL=False
+      - TAIGA_DB_NAME=taiga
+      - TAIGA_DB_HOST=postgres
+      - TAIGA_DB_USER=postgres
+      - TAIGA_DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=taiga"
+      - "traefik.frontend.rule=Host:taiga.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=taiga.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+#      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

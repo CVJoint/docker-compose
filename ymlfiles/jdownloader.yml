@@ -1,0 +1,48 @@
+version: "3.7"
+services:
+
+## JDownloader – Download Manager
+  jdownloader:
+    container_name: jdownloader
+    image: jlesage/jdownloader-2
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "XXXX:5800"
+#      - "XXXX:5900"
+#      - "XXXX:3129"
+    volumes:
+      - ${USERDIR}/Downloads/JDown:/output
+      - ${USERDIR}/docker/jdownloader:/config
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - USER_ID=${PUID}
+      - GROUP_ID=${PGID}
+      - TZ=${TZ}
+      - UMASK_SET=002
+      - DISPLAY_WIDTH=1280
+      - DISPLAY_HEIGHT=768
+      - VNC_PASSWORD=YOUR PASSWORD
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=jdownloader"
+      - "traefik.frontend.rule=Host:jdownloader.${DOMAINNAME}"
+      - "traefik.port=5800"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=jdownloader.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

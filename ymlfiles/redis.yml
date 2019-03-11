@@ -1,0 +1,92 @@
+version: "3.7"
+services:
+
+## Redis - Key-value Store
+  ##Create config
+    # mkdir ${USERDIR}/docker/redis
+    # docker run --rm --entrypoint cat redis /usr/local/etc/redis/redis.conf > ${USERDIR}/docker/redis/redis.conf
+
+  ## Fix THP issues:
+    # sudo -i
+    # echo never > /sys/kernel/mm/transparent_hugepage/enabled
+    # exit
+    # sudo sysctl vm.overcommit_memory=1
+
+  # Add this to rc.local file to persist changes after reboot:
+  # Ubuntu 18.04 doesn't contain rc.local file so we need to create it:
+    # sudo nano /etc/rc.local
+  # Paste the following:
+
+  # #!/bin/sh -e
+  # #
+  # # rc.local
+  # #
+  # # This script is executed at the end of each multiuser runlevel.
+  # # Make sure that the script will "exit 0" on success or any other
+  # # value on error.
+  # #
+  # # In order to enable or disable this script just change the execution
+  # # bits.
+  # #
+  # # By default this script does nothing.
+  #
+  # echo never > /sys/kernel/mm/transparent_hugepage/enabled
+  # sysctl vm.overcommit_memory=1
+  #
+  # exit 0
+
+  # Save and exit
+  # Now make the file executable:
+    # sudo chmod +x /etc/rc.local
+
+  redis:
+    container_name: redis
+    image: redis
+    restart: always
+    entrypoint: redis-server --appendonly yes
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "6379:6379"
+    sysctls:
+      net.core.somaxconn: '65535'
+    volumes:
+      - ${USERDIR}/docker/redis/data:/data
+      - /etc/timezone:/etc/timezone:ro
+#      - ${USERDIR}/docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ${USERDIR}/docker/shared:/shared
+
+## Redis Commander - Redis Management Tool
+  rediscommander:
+    hostname: rediscommander
+    container_name: rediscommander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "8081:8081"
+    environment:
+      - REDIS_HOST=redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=rediscommander"
+      - "traefik.frontend.rule=Host:rediscommander.${DOMAINNAME}"
+      - "traefik.port=8081"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=rediscommander.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

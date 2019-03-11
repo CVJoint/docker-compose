@@ -1,0 +1,20 @@
+version: "3.7"
+services:
+
+## Watchtower - Automatic Update of Containers/Apps
+  # Consider using the fork kopfkrieg/watchtower
+  watchtower:
+    hostname: watchtower
+    container_name: watchtower
+    image: v2tec/watchtower
+    restart: always
+    command: --schedule "0 0 4 * * *" --cleanup
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=${TZ}
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

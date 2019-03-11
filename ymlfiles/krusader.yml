@@ -1,0 +1,53 @@
+version: "3.7"
+services:
+
+## Krusader - File Browser
+  # Click vnc.html
+  # Documents available at ${USERDIR}/docfiles
+  krusader:
+    container_name: krusader
+    image: binhex/arch-krusader
+    restart: always
+    privileged: "true"
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "5900:5900"
+#      - "6080:6080"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - krusader_config:/config/
+      - /path/to/your/files:${USERDIR}/docfiles
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TEMP_FOLDER=/config/temp
+      - VNC_PASSWORD=YOUR PASSWORD
+      - UMASK=002
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=krusader"
+      - "traefik.frontend.rule=Host:krusader.${DOMAINNAME}"
+      - "traefik.port=6080"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=krusader.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.passHostHeader=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+volumes:
+  krusader_config:
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

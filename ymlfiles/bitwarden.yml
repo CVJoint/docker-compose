@@ -1,0 +1,49 @@
+version: "3.7"
+services:
+
+## Bitwarden - Password Vault
+  bitwarden:
+    container_name: bitwarden
+    image: mprasil/bitwarden
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    volumes:
+      - ${USERDIR}/docker/bitwarden:/data
+      - /var/log/docker:/var/log/docker
+      - /etc/timezone:/etc/timezone:ro
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - SIGNUPS_ALLOWED=true # Change to false after first login
+      - INVITATIONS_ALLOWED=true # Change to false after first login
+#      - LOG_FILE=/var/log/docker/bitwarden.log  # Used for fail2ban
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_FROM=YOUR GMAIL ACCOUNT
+      - SMTP_PORT=587
+      - SMTP_SSL=true
+      - SMTP_USERNAME=YOUR GMAIL ACCOUNT
+      - SMTP_PASSWORD=YOUR GMAIL PASSWORD
+      - DOMAIN=https://bitwarden.${DOMAINNAME}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=bitwarden"
+      - "traefik.frontend.rule=Host:bitwarden.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=bitwarden.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

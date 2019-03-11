@@ -1,0 +1,56 @@
+version: "3.7"
+services:
+
+## Wallabag
+  # The last time I set this up I had issues getting the mysql database to work.. need to test further
+  # Login: wallabag / wallabag
+  # Add Redis
+  wallabag:
+    container_name: wallabag
+    image: wallabag/wallabag
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    volumes:
+      - ${USERDIR}/docker/wallabag/images:/var/www/wallabag/web/assets/images
+      - ${USERDIR}/docker/wallabag/data:/var/www/wallabag/data
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+#      - SYMFONY__ENV__DATABASE_DRIVER=pdo_mysql
+#      - SYMFONY__ENV__DATABASE_DRIVER_CLASS=
+#      - SYMFONY__ENV__DATABASE_HOST=mariadb
+#      - SYMFONY__ENV__DATABASE_PORT=3306
+#      - SYMFONY__ENV__DATABASE_NAME=wallabag
+#      - SYMFONY__ENV__DATABASE_USER=wallabag
+#      - SYMFONY__ENV__DATABASE_PASSWORD=${MYSQL_ROOT_PASSWORD}
+#      - SYMFONY__ENV__DATABASE_PATH=""
+#      - SYMFONY__ENV__DATABASE_CHARSET=utf8mb4
+      - SYMFONY__ENV__DOMAIN_NAME=https://wallabag.${DOMAINNAME}
+#      - SYMFONY__ENV__REDIS_HOST=redis
+#      - POPULATE_DATABASE=True # Disable after first run
+#      - SYMFONY__ENV__FOSUSER_REGISTRATION=
+#      - SYMFONY__ENV__FOSUSER_CONFIRMATION=
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=wallabag"
+      - "traefik.frontend.rule=Host:wallabag.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=wallabag.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

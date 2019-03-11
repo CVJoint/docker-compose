@@ -1,0 +1,45 @@
+version: "3.7"
+services:
+
+# Need to run with MongoDB
+
+## Wekan - Open Source Kanban Board
+  wekan:
+    container_name: wekan
+    image: wekanteam/wekan
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "8080:8080"
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/wekan # //<mongo container name>:<mongo port>/<database name>
+      - ROOT_URL=https://wekan.${DOMAINNAME}
+      - WITH_API=false
+      - BROWSER_POLICY_ENABLED=true
+      - TRUSTED_URL=https://wekan.${DOMAINNAME}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=wekan"
+      - "traefik.frontend.rule=Host:wekan.${DOMAINNAME}"
+      - "traefik.port=8080"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=wekan.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

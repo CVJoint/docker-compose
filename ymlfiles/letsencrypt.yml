@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+
+## LetsEncrypt - Certificates
+  # Generate .htpasswd files
+  # docker exec -it letsencrypt htpasswd -c /config/nginx/.htpasswd
+  letsencrypt:
+    container_name: letsencrypt
+    image: linuxserver/letsencrypt
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+#      - "443:443"
+    volumes:
+      - ${USERDIR}/docker/letsencrypt:/config
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - URL=${DOMAINNAME}
+      - SUBDOMAINS=wildcard
+      - VALIDATION=dns
+      - DNSPLUGIN=cloudflare
+      - EMAIL=YOUR EMAIL
+      - DHLEVEL=4096
+      - STAGING=true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=443"
+      - "traefik.docker.network=traefik_proxy"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

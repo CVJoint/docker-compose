@@ -1,0 +1,56 @@
+version: "3.7"
+services:
+
+## Healthchecks - Cron Monitor
+  # Need to manually add "ALLOWED_HOSTS" to bottom of local_settings file
+  # Also add REGISTRATION_OPEN="True" for first login
+  # Additional config settings here:
+  # https://github.com/healthchecks/healthchecks
+  healthchecks:
+    container_name: healthchecks
+    image: lsiocommunity/healthchecks
+    restart: always
+    networks:
+      - traefik_proxy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ${USERDIR}/docker/healthchecks:/config
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+#      - TZ=${TZ}
+      - SITE_ROOT=https://healthchecks.${DOMAINNAME} # I typed out full domain name here, not sure if necessary
+      - SITE_NAME=healthchecks
+      - DEFAULT_FROM_EMAIL=healthchecks@${DOMAINNAME}
+      - EMAIL_HOST=smtp.gmail.com
+      - EMAIL_PORT=587
+      - EMAIL_HOST_USER=YOUR GMAIL
+      - EMAIL_HOST_PASSWORD=YOUR GMAIL PASSWORD
+      - EMAIL_USE_TLS=True
+#      - ALLOWED_HOSTS = ["*"]
+#      - SECRET_KEY = "ODgwNGRiZDdiNWRmZjg5Y2I2MWMwYTBj"
+#      - REGISTRATION_OPEN = "True"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=healthchecks"
+      - "traefik.frontend.rule=Host:healthchecks.${DOMAINNAME}"
+      - "traefik.port=8000"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=healthchecks.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy
