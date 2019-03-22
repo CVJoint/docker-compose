@@ -4,7 +4,15 @@
   [backends.pihole]
     [backends.pihole.servers]
       [backends.pihole.servers.server-pihole-ext]
-        url = "http://192.168.1.222"
+        url = "http://192.168.1.200:80"
+
+## Connect to your unifi controller running on an external device (raspberry pi)
+
+  [backends.unifi]
+    [backends.unifi.servers]
+      [backends.unifi.servers.server-unifi-ext]
+        url = "https://192.168.1.200:8443"
+
 
 [frontends]
   [frontends.pihole]
@@ -13,11 +21,48 @@
 #      [frontends.pihole.auth.basic]
 #        usersFile = "/shared/.htpasswd"
       [frontends.pihole.auth]
-      headerField = "X-WebAuth-User"
+        headerField = "X-WebAuth-User"
         [frontends.pihole.auth.forward]
           address = "http://oauth:4181"
           trustForwardHeader = true
           authResponseHeaders = ["X-Auth-User"]
       [frontends.pihole.routes]
         [frontends.pihole.routes.route-pihole-ext]
-          rule = "Host:pihole.<YOUR DOMAIN>;AddPrefix:/admin"
+          rule = "Host:pihole.domain.net;AddPrefix:/admin"
+      [frontends.pihole.headers]
+        SSLRedirect = true
+        SSLHost = "pihole.domain.net"
+        SSLForceHost = true
+        STSSeconds = 315360000
+        STSIncludeSubdomains = true
+        STSPreload = true
+        forceSTSHeader = true
+        frameDeny = true
+        contentTypeNosniff = true
+        browserXSSFilter = true
+
+  [frontends.unifi]
+    backend = "unifi"
+    passHostHeader = true
+#      [frontends.pihole.auth.basic]
+#        usersFile = "/shared/.htpasswd"
+      [frontends.unifi.auth]
+        headerField = "X-WebAuth-User"
+        [frontends.unifi.auth.forward]
+          address = "http://oauth:4181"
+          trustForwardHeader = true
+          authResponseHeaders = ["X-Auth-User"]
+      [frontends.unifi.routes]
+        [frontends.unifi.routes.route-unifi-ext]
+          rule = "Host:unifi.domain.net"
+      [frontends.unifi.headers]
+        SSLRedirect = true
+        SSLHost = "unifi.domain.net"
+        SSLForceHost = true
+        STSSeconds = 315360000
+        STSIncludeSubdomains = true
+        STSPreload = true
+        forceSTSHeader = true
+        frameDeny = true
+        contentTypeNosniff = true
+        browserXSSFilter = true

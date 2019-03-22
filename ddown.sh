@@ -111,4 +111,3 @@
 #    docker-compose -f ~/docker/ymlfiles/twweb.yml -p twweb down
 #    docker-compose -f ~/docker/ymlfiles/volumio.yml -p volumio down
 #    docker-compose -f ~/docker/ymlfiles/watchtower.yml -p watchtower down
-#    docker-compose -f ~/docker/ymlfiles/wordpress.yml -p wordpress down

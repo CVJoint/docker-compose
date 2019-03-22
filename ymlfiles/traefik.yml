@@ -1,7 +1,7 @@
 # Reference: https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker
 # Need to start the traefik network before running:
   # docker network create traefik_proxy
-# Trail logs using (docker logs -tf --tail="50" traefik). Change traefik to conainer you want to trail
+# Trail logs using (docker logs -tf --tail="50" traefik). Change traefik to container you want to trail
 
 version: "3.7"
 services:
