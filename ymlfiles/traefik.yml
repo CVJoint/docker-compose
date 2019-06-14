@@ -42,6 +42,8 @@ services:
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.headers.customFrameOptionsValue='allow-from https:${DOMAINNAME}'"
+      - "traefik.frontend.passHostHeader=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
 
 ## Google OAuth - Limits access to only your Google account
@@ -82,6 +84,8 @@ services:
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.headers.customFrameOptionsValue='allow-from https:${DOMAINNAME}'"
+      - "traefik.frontend.passHostHeader=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181" # add this to any containers you want to protect (if possible, sometimes mobile apps dont work)
 
 networks:
