@@ -13,6 +13,11 @@
       [backends.unifi.servers.server-unifi-ext]
         url = "https://192.168.1.200:8443"
 
+## Allows connection to a second docker host
+  [backends.traefikdev]
+    [backends.traefikdev.servers]
+      [backends.traefikdev.servers.server-traefikdev-ext]
+url = "https://192.168.1.200:443"
 
 [frontends]
   [frontends.pihole]
