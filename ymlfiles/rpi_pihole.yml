@@ -60,7 +60,6 @@ services:
       - ~/docker/pihole/scripts/fetchFilterLists.sh:/usr/local/bin/fetchFilterLists.sh
       - ~/docker/pihole/scripts/gravityOptimise.sh:/usr/local/bin/gravityOptimise.sh
       - ~/docker/pihole/scripts/generateGravityWildcards.sh:/usr/local/bin/generateGravityWildcards.sh
-      - ~/docker/pihole/scripts/dupdate.sh:/usr/local/bin/dupdate.sh
       - ~/docker/pihole/scripts/cron.d/fetchFilterLists:/etc/cron.d/fetchFilterLists
       - ~/docker/pihole/scripts/cron.d/gravityOptimise:/etc/cron.d/gravityOptimise
       - ~/docker/pihole/scripts/cron.d/generateGravityWildcards:/etc/cron.d/generateGravityWildcards
