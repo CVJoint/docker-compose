@@ -1,0 +1,172 @@
+version: "3.7"
+services:
+
+### Before starting the containers, create external network to assign IP addresses which will all be 192.168.50.x
+  # docker network create --gateway 192.168.50.1 --subnet 192.168.50.0/24 pi_net
+
+## Pihole - Ad-blocker
+
+  ## Modify Ubuntu Network Configuration:
+    ## Disable and stop Ubuntu’s DNS resolver:
+      # sudo systemctl disable systemd-resolved.service
+      # sudo systemctl stop systemd-resolved
+    ## Open Network Manager configuration:
+      # sudo nano /etc/NetworkManager/NetworkManager.conf
+    ## Add this new line under [main], under plugins:
+      # dns=default
+    ## Make a backup of resolv.conf file and delete original (optional)
+      # sudo cp /etc/resolv.conf /etc/resolv.conf.bak
+      # sudo rm /etc/resolv.conf
+    ## Restart Network Manager
+      # sudo service network-manager restart
+    ## Apparently sometimes it won't restart/connect, so restart a second time to be sure
+      # sudo service network-manager restart
+
+  ## The resolv.conf file was giving me trouble in the pihole container, so here is the workaround:
+    # mkdir -p ${USERDIR}/docker/pihole/resolv.conf
+    # nano ${USERDIR}/docker/pihole/resolv.conf/resolv.conf
+    ## Enter both lines below and save:
+    # nameserver 127.0.0.1
+    # nameserver 192.168.50.102
+
+  ## To store logs run:
+    # touch ${USERDIR}/docker/pihole/pihole.log
+
+  ## I've added the following blocklist in addition to the standard ones under Settings>Blocklists (copy the link, paste and update)
+    # https://dbl.oisd.nl/
+    ## More info here: https://www.reddit.com/r/pihole/comments/bppug1/introducing_the/
+
+  ## I've added the following whitelist entries (copy domains and paste all at once)
+    # https://github.com/anudeepND/whitelist/blob/master/domains/whitelist.txt
+    # https://github.com/anudeepND/whitelist/blob/master/domains/referral-sites.txt
+
+  ## I also use the regex list and scripts from https://github.com/mmotti
+
+  pihole:
+    container_name: pihole
+    image: pihole/pihole
+    restart: unless-stopped
+    depends_on:
+      - unbound
+    cap_add:
+      - NET_ADMIN
+      - NET_BIND_SERVICE
+    networks:
+      pi_net:
+        ipv4_address: 192.168.50.101
+    ports:
+      - '53:53/tcp'
+      - '53:53/udp'
+#      - '67:67/udp'
+      - '9980:80/tcp'
+      - '9443:443/tcp'
+    volumes:
+      - ${USERDIR}/docker/pihole/pihole:/etc/pihole
+      - ${USERDIR}/docker/pihole/resolv.conf/resolv.conf:/etc/resolv.conf:ro
+      - ${USERDIR}/docker/pihole/dnsmasq.d:/etc/dnsmasq.d
+      ## Run `touch ${USERDIR}/docker/pihole/pihole.log` before starting pihole
+      - ${USERDIR}/docker/pihole/pihole.log:/var/log/pihole.log
+    environment:
+      - TZ=${TZ}
+      - ServerIP=${HOST_IP}
+      - IPv6=False
+#      - PROXY_LOCATION=pihole2
+#      - VIRTUAL_HOST=pihole2.${DOMAINNAME}
+#      - VIRTUAL_PORT=80
+      - WEBPASSWORD=${PIHOLE_PASSWORD}
+      - DNS1=127.0.0.1
+      - DNS2=192.168.50.102
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.backend=pihole2"
+#      - "traefik.port=80"
+#      # Access admin page at pihole2.${DOMAINNAME}
+#      - "traefik.frontend.rule=Host:pihole2.${DOMAINNAME};AddPrefix:/admin
+#      - "traefik.frontend.headers.SSLRedirect=true"
+#      - "traefik.frontend.headers.STSSeconds=315360000"
+#      - "traefik.frontend.headers.browserXSSFilter=true"
+#      - "traefik.frontend.headers.contentTypeNosniff=true"
+#      - "traefik.frontend.headers.forceSTSHeader=true"
+#      - "traefik.frontend.headers.SSLHost=pihole2.${DOMAINNAME}"
+#      - "traefik.frontend.headers.SSLForceHost=true"
+#      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+#      - "traefik.frontend.headers.STSPreload=true"
+#      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
+#      - "traefik.frontend.headers.frameDeny=true"
+#      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+
+## Unbound - DNS Server
+
+  ## Setup folders and files
+    # mkdir ${USERDIR}/docker/pihole/unbound
+    # sudo chown -R ${USER}:${USER} ${USERDIR}/docker/pihole/unbound
+    # docker run --rm --entrypoint cat mvance/unbound /opt/unbound/etc/unbound/a-records.conf > ${USERDIR}/docker/pihole/unbound/a-records.conf
+  ## Start container
+    # docker exec -it unbound unbound-anchor
+  ## Stop container
+    # sudo chown -R ${USER}:${USER} ${USERDIR}/docker/pihole/unbound
+    # rm ${USERDIR}/docker/pihole/unbound/var/root.key
+    # mv ${USERDIR}/docker/pihole/unbound/root.key ${USERDIR}/docker/pihole/unbound/var
+    # wget https://www.internic.net/domain/named.root -O ${USERDIR}/docker/pihole/unbound/var/root.hints
+
+  ## Edit the unbound.conf file:
+  ## Change:
+    # cache-min-ttl: 60
+    # msg-cache-size: 1039635797
+    # rrset-cache-size: 1039635797
+    # In the FORWARD ZONE section, comment out the "forward-addr" lines for Cloudflare and CleanBrowsing, and add:
+    # forward-addr: 192.168.50.103@8053
+  ## Add to the bottom of BASIC SETTINGS:
+    # root-hints: "/opt/unbound/etc/unbound/var/root.hints"
+    # do-ip6: no  ## If you don't want to use IPv6
+    # deny-any:yes
+
+  ## Test that it's working (pihole must be running)
+    # docker exec -it pihole dig pi-hole.net @127.0.0.1 -p 53
+
+  ## Test DNSSEC
+  ## This command should result in: "status: SERVFAIL"
+    # docker exec -it pihole dig sigfail.verteiltesysteme.net @127.0.0.1 -p 53
+  ## This command should result in: "status: NOERROR"
+    # docker exec -it pihole dig sigok.verteiltesysteme.net @127.0.0.1 -p 53
+
+  unbound:
+    container_name: unbound
+    image: mvance/unbound
+    restart: always
+    depends_on:
+      - stubby
+    networks:
+      pi_net:
+        ipv4_address: 192.168.50.102
+#    ports:
+#      - '53:53'
+    volumes:
+      - ${USERDIR}/docker/pihole/unbound:/opt/unbound/etc/unbound
+      - ${USERDIR}/docker/shared:/shared
+
+
+##Stubby - Stub Resolver - DNS over TLS
+
+  ## If stubby folder doesn't exist, create it with:
+    # mkdir ${USERDIR}/docker/pihole/stubby
+  # docker run --rm --entrypoint cat mvance/stubby /opt/stubby/etc/stubby/stubby.yml > ${USERDIR}/docker/pihole/stubby/stubby.yml
+
+#  stubby:
+#    container_name: stubby
+#    image: mvance/stubby
+#    restart: always
+#    networks:
+#      pi_net:
+#        ipv4_address: 192.168.50.103
+##    ports:
+##      - '8053:8053'
+#    volumes:
+#      - ${USERDIR}/docker/pihole/stubby:/opt/stubby/etc/stubby
+#      - ${USERDIR}/docker/shared:/shared
+
+networks:
+  pi_net:
+    external:
+      name: pi_net

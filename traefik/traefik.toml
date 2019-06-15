@@ -1,5 +1,5 @@
 logLevel = "INFO" #DEBUG, INFO, WARN, ERROR, FATAL, PANIC
-InsecureSkipVerify = true
+#InsecureSkipVerify = true
 defaultEntryPoints = ["http", "https"]
 
 [api]

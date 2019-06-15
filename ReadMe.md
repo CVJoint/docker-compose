@@ -6,8 +6,11 @@ My docker-compose setup is managed by two files - **dup.sh** and **ddown.sh**, w
 
 I keep my docker-compose files in a folder called **ymlfiles**, and reference it's location in my **dup.sh** file.
 
-Using these files I comment or uncomment the containers that I want to bring up, and then launch them with
-`bash dup.sh` from the home directory.
+~~Using these files I comment or uncomment the containers that I want to bring up, and then launch them with~~
+~~`bash dup.sh` from the home directory.~~
+
+In order to bring up files I use:
+`bash dup.sh <container_name>`
 
 Normally I will simply type `bash du` + Tab or `bash dd` + Tab to bring them up and down. You could choose different file names, or enter aliases to make the command a bit simpler, but this has been working for me so far.
 

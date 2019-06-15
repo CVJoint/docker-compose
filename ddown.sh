@@ -1,12 +1,14 @@
 #!/bin/bash
 
-    echo""
-    echo "...Standard Stack Down..."
-    echo""
+echo""
+echo "...$1 down..."
+echo""
+
+docker-compose -f "/home/$USER/docker/ymlfiles/$1.yml" -p $1 down
 
 #    docker-compose -f ~/docker/ymlfiles/pihole.yml -p pihole down
 #    docker-compose -f ~/docker/ymlfiles/openvpn.yml -p openvpn down
-    docker-compose -f ~/docker/ymlfiles/traefik.yml -p traefik down
+#    docker-compose -f ~/docker/ymlfiles/traefik.yml -p traefik down
 #    docker-compose -f ~/docker/ymlfiles/fail2ban.yml -p fail2ban down
 #    docker-compose -f ~/docker/ymlfiles/ouroboros.yml -p ouroboros down
 #    docker-compose -f ~/docker/ymlfiles/healthchecks.yml -p healthchecks down
@@ -36,9 +38,9 @@
 #    docker-compose -f ~/docker/ymlfiles/wetty.yml -p wetty down
 #    docker-compose -f ~/docker/ymlfiles/wekan.yml -p wekan down
 
-    echo""
-    echo "...Others Down..."
-    echo""
+#    echo""
+#    echo "...Others Down..."
+#    echo""
 
 #    docker-compose -f ~/docker/ymlfiles/test.yml -p test down
 #    docker-compose -f ~/docker/ymlfiles/test2.yml -p test2 down

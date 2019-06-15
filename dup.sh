@@ -7,12 +7,14 @@
     # docker logs -tf --tail="50" <container name>
 
     echo""
-    echo "...Standard Stack Up..."
+    echo "...$1 up..."
     echo""
+
+    docker-compose -f "/home/$USER/docker/ymlfiles/$1.yml" -p $1 up -d
 
 #    docker-compose -f ~/docker/ymlfiles/pihole.yml -p pihole up -d
 #    docker-compose -f ~/docker/ymlfiles/openvpn.yml -p openvpn up -d
-    docker-compose -f ~/docker/ymlfiles/traefik.yml -p traefik up -d
+#    docker-compose -f ~/docker/ymlfiles/traefik.yml -p traefik up -d
 #    docker-compose -f ~/docker/ymlfiles/fail2ban.yml -p fail2ban up -d
 #    docker-compose -f ~/docker/ymlfiles/ouroboros.yml -p ouroboros up -d
 #    docker-compose -f ~/docker/ymlfiles/healthchecks.yml -p healthchecks up -d
@@ -42,9 +44,9 @@
 #    docker-compose -f ~/docker/ymlfiles/wetty.yml -p wetty up -d
 #    docker-compose -f ~/docker/ymlfiles/wekan.yml -p wekan up -d                  # Mongo
 
-    echo""
-    echo "...Others Up..."
-    echo""
+#    echo""
+#    echo "...Others Up..."
+#    echo""
 
 #    docker-compose -f ~/docker/ymlfiles/test.yml -p test up -d
 #    docker-compose -f ~/docker/ymlfiles/test2.yml -p test2 up -d
