@@ -13,6 +13,11 @@ services:
     container_name: traefik
     image: traefik
     restart: always
+    command: #These are used for fail2ban
+      - "--loglevel=INFO"
+      - "--accesslog=true"
+      - "--accessLog.filePath=/var/log/traefik.log"
+      - "--accessLog.filters.statusCodes=400-499"
     networks:
       - traefik_proxy
     ports:
@@ -22,6 +27,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${USERDIR}/docker/traefik:/etc/traefik
+      - /var/log/docker:/var/log
       - ${USERDIR}/docker/shared:/shared
     environment:
       - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
@@ -41,16 +47,20 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
+#      - "traefik.frontend.auth.basic.usersFile=/shared/.htpasswd"
 
 ## Google OAuth - Limits access to only your Google account
   # https://hub.docker.com/r/thomseddon/traefik-forward-auth
   # https://console.developers.google.com/
   # Follow directions at above link. My Google settings under the Credentials tab are:
-    # Credentials: Name can be anything (mine is Traefik) and Authorized redirect URLs:  	https://oauth.${DOMAINNAME}/_oauth
-    # OAuth Concent Screen: Application Name is Traefik (think it can be anything). I entered my e-mail for support e-mail. Authorized Domains is ${DOMAINNAME}
-    # Domain Verification: ${DOMAINNAME}
+  # Credentials: Name can be anything (mine is Traefik) and Authorized redirect URLs:  	https://oauth.${DOMAINNAME}/_oauth
+  # OAuth Concent Screen: Application Name is Traefik (think it can be anything). I entered my e-mail for support e-mail. Authorized Domains is ${DOMAINNAME}
+  # Domain Verification: ${DOMAINNAME}
 
   oauth:
     container_name: oauth
@@ -59,13 +69,16 @@ services:
     networks:
       - traefik_proxy
     environment:
-      - CLIENT_ID=
-      - CLIENT_SECRET=
-      - SECRET= # Can be anything
-      - COOKIE_SECURE=false
-      - COOKIE_DOMAINS=${DOMAINNAME}
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - SECRET=${SECRET} ## Crate random secret with: openssl rand -hex 16
+      - INSECURE_COOKIE=false
+      - COOKIE_DOMAIN=${DOMAINNAME}
       - AUTH_HOST=oauth.${DOMAINNAME}
-      - WHITELIST= # Enter Gmail accounts you want to allow access
+      - WHITELIST=${MY_EMAIL}
+      - LOG_LEVEL=warn
+      - LOG_FORMAT=text
+#      - LIFETIME=43200
     labels:
       - "traefik.enable=true"
       - "traefik.backend=oauth"
@@ -81,8 +94,11 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181" # add this to any containers you want to protect (if possible, sometimes mobile apps dont work)
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User" # add this to any containers you want to protect (if possible, sometimes mobile apps dont work)
+      - "traefik.frontend.auth.forward.trustForwardHeader=true" # add this to any containers you want to protect (if possible, sometimes mobile apps dont work)
 
 networks:
   traefik_proxy:

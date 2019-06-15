@@ -25,7 +25,7 @@
         [frontends.pihole.auth.forward]
           address = "http://oauth:4181"
           trustForwardHeader = true
-          authResponseHeaders = ["X-Auth-User"]
+          authResponseHeaders = ["X-Forwarded-User"]
       [frontends.pihole.routes]
         [frontends.pihole.routes.route-pihole-ext]
           rule = "Host:pihole.domain.net;AddPrefix:/admin"
@@ -40,6 +40,7 @@
         frameDeny = true
         contentTypeNosniff = true
         browserXSSFilter = true
+        customResponseHeaders = "X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
 
   [frontends.unifi]
     backend = "unifi"
@@ -51,7 +52,7 @@
         [frontends.unifi.auth.forward]
           address = "http://oauth:4181"
           trustForwardHeader = true
-          authResponseHeaders = ["X-Auth-User"]
+          authResponseHeaders = ["X-Forwarded-User"]
       [frontends.unifi.routes]
         [frontends.unifi.routes.route-unifi-ext]
           rule = "Host:unifi.domain.net"
@@ -66,3 +67,4 @@
         frameDeny = true
         contentTypeNosniff = true
         browserXSSFilter = true
+        customResponseHeaders = "X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
