@@ -1,0 +1,29 @@
+version: "3.7"
+services:
+
+## PIA - VPN Service
+  pia:
+    container_name: pia
+    image: itsdaspecialk/pia-openvpn
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - traefik_proxy
+    ports:
+      - "8022:8080"
+    dns:
+      - 192.168.1.200
+      - 209.222.18.218
+      - 209.222.18.222
+    volumes:
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - REGION=CA Toronto
+      - USERNAME=<pia_username>
+      - PASSWORD=<pia_password>
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy
