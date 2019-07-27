@@ -1,10 +1,10 @@
-FROM debian:stretch as openssl
+FROM debian:buster as openssl
 LABEL maintainer="Matthew Vance"
 
-ENV VERSION_OPENSSL=openssl-1.1.1b \
-    SHA256_OPENSSL=5c557b023230413dfb0756f3137a13e6d726838ccd1430888ad15bfb2b43ea4b \
+ENV VERSION_OPENSSL=openssl-1.1.1c \
+    SHA256_OPENSSL=f6fb3079ad15076154eda9413fed42877d668e7069d9b87396d0804fdb3f4c90 \
     SOURCE_OPENSSL=https://www.openssl.org/source/ \
-    OPGP_OPENSSL=8657ABB260F056B1E5190839D9C4D26D0E604491
+    OPGP_OPENSSL=7953AC1FBC3DC8B3B292393ED5E9E43F7DF9EE8C
 
 WORKDIR /tmp/src
 
@@ -33,13 +33,13 @@ RUN set -e -x && \
         /var/tmp/* \
         /var/lib/apt/lists/*
 
-FROM debian:stretch as unbound
+FROM debian:buster as unbound
 LABEL maintainer="Matthew Vance"
 
 ENV NAME=unbound \
-    UNBOUND_VERSION=1.9.1 \
-    UNBOUND_SHA256=c3c0bf9b86ccba4ca64f93dd4fe7351308ab54293f297a67de5a8914c1dc59c5 \
-    UNBOUND_DOWNLOAD_URL=https://nlnetlabs.nl/downloads/unbound/unbound-1.9.1.tar.gz
+    UNBOUND_VERSION=1.9.2 \
+    UNBOUND_SHA256=6f7acec5cf451277fcda31729886ae7dd62537c4f506855603e3aa153fcb6b95 \
+    UNBOUND_DOWNLOAD_URL=https://nlnetlabs.nl/downloads/unbound/unbound-1.9.2.tar.gz
 
 WORKDIR /tmp/src
 
@@ -52,13 +52,13 @@ RUN build_deps="curl gcc libc-dev libevent-dev libexpat1-dev make" && \
       bsdmainutils \
       ca-certificates \
       ldnsutils \
-      libevent-2.0 \
+      libevent-2.1-6 \
       libexpat1 && \
     curl -sSL $UNBOUND_DOWNLOAD_URL -o unbound.tar.gz && \
     echo "${UNBOUND_SHA256} *unbound.tar.gz" | sha256sum -c - && \
     tar xzf unbound.tar.gz && \
     rm -f unbound.tar.gz && \
-    cd unbound-1.9.1 && \
+    cd unbound-1.9.2 && \
     groupadd _unbound && \
     useradd -g _unbound -s /etc -d /dev/null _unbound && \
     ./configure \
@@ -80,11 +80,11 @@ RUN build_deps="curl gcc libc-dev libevent-dev libexpat1-dev make" && \
         /var/lib/apt/lists/*
 
 
-FROM debian:stretch
+FROM debian:buster
 LABEL maintainer="Matthew Vance"
 
 ENV NAME=unbound \
-    VERSION=1 \
+    VERSION=1.1 \
     SUMMARY="${NAME} is a validating, recursive, and caching DNS resolver." \
     DESCRIPTION="${NAME} is a validating, recursive, and caching DNS resolver."
 
@@ -104,7 +104,7 @@ RUN set -x && \
       bsdmainutils \
       ca-certificates \
       ldnsutils \
-      libevent-2.0 \
+      libevent-2.1-6\
       libexpat1 && \
     groupadd _unbound && \
     useradd -g _unbound -s /etc -d /dev/null _unbound && \
