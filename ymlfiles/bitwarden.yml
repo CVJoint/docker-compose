@@ -18,19 +18,22 @@ services:
     environment:
       - SIGNUPS_ALLOWED=true # Change to false after first login
       - INVITATIONS_ALLOWED=true # Change to false after first login
+      - WEBSOCKET_ENABLED=true
 #      - LOG_FILE=/var/log/docker/bitwarden.log  # Used for fail2ban
       - SMTP_HOST=smtp.gmail.com
       - SMTP_FROM=YOUR GMAIL ACCOUNT
       - SMTP_PORT=587
       - SMTP_SSL=true
       - SMTP_USERNAME=YOUR GMAIL ACCOUNT
-      - SMTP_PASSWORD=YOUR GMAIL PASSWORD
+      - SMTP_PASSWORD=YOUR GMAIL PASSWORD (or App Password if you use 2FA)
       - DOMAIN=https://bitwarden.${DOMAINNAME}
     labels:
       - "traefik.enable=true"
-      - "traefik.backend=bitwarden"
-      - "traefik.frontend.rule=Host:bitwarden.${DOMAINNAME}"
-      - "traefik.port=80"
+      - "traefik.web.frontend.rule=Host:bitwarden.${DOMAINNAME}"
+      - "traefik.web.port=80"
+      - "traefik.hub.frontend.rule=Host:bitwarden.${DOMAINNAME};Path:/notifications/hub"
+      - "traefik.hub.port=3012"
+      - "traefik.hub.protocol=ws"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.frontend.headers.SSLRedirect=true"
       - "traefik.frontend.headers.STSSeconds=315360000"
@@ -41,6 +44,7 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
 
 networks:

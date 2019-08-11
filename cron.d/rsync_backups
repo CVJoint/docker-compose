@@ -1,0 +1,72 @@
+# /etc/cron.d/rsync_backups
+
+# Example of job definition:
+# .---------------- minute (0 - 59)
+# |  .------------- hour (0 - 23)
+# |  |  .---------- day of month (1 - 31)
+# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |  |  |  |  |
+# *  *  *  *  * user-name  command to be executed
+
+## Expression to change the backup time - %s/<search term>/<replace term>
+# Example:
+# %s/0\ 6\ \*\ \*\ 1/00\ 06\ \*\ \*\ 1
+
+## Change <USER> !!
+
+### Home ###
+
+HOME_DIR=</path/to/samba/share/>
+
+00 06 * * 1 root rsync -a /home/<USER>/ddown.sh $HOME_DIR
+00 06 * * 1 root rsync -a /home/<USER>/dup.sh $HOME_DIR
+00 06 * * 1 root rsync -a /home/<USER>/Linux_Notes.ods $HOME_DIR
+
+### Docker ###
+
+DOCKER_DIR=</path/to/samba/share/>
+
+00 06 * * 1 root rsync -a /home/<USER>/docker/airsonic/airsonic.properties /mnt/storage/misc/backup/backup_home/docker/airsonic
+00 06 * * 1 root rsync -a /home/<USER>/docker/bitwarden $DOCKER_DIR
+00 06 * * 1 root rsync -a /home/<USER>/docker/fail2ban $DOCKER_DIR
+00 06 * * 1 root rsync -a /home/<USER>/docker/git $DOCKER_DIR
+00 06 * * 1 root rsync -a /home/<USER>/docker/heimdall $DOCKER_DIR
+00 06 * * 1 root rsync -a /home/<USER>/docker/jackett $DOCKER_DIR
+00 06 * * 1 root rsync -a /home/<USER>/docker/mariadb $DOCKER_DIR
+00 06 * * 1 root rsync -a /home/<USER>/docker/mongo $DOCKER_DIR
+00 06 * * 1 root rsync -a /home/<USER>/docker/nextcloud $DOCKER_DIR
+00 06 * * 1 root rsync -a /home/<USER>/docker/redis $DOCKER_DIR
+00 06 * * 1 root rsync -a /home/<USER>/docker/tautulli $DOCKER_DIR
+00 06 * * 1 root rsync -a /home/<USER>/docker/traefik $DOCKER_DIR
+00 06 * * 1 root rsync -a /home/<USER>/docker/ymlfiles $DOCKER_DIR
+
+### Etc ###
+
+ETC_DIR=</path/to/samba/share/>
+
+00 06 * * 1 root rsync -a /etc/cron.d $ETC_DIR
+00 06 * * 1 root rsync -a /etc/fail2ban $ETC_DIR
+00 06 * * 1 root rsync -a /etc/samba $ETC_DIR
+00 06 * * 1 root rsync -a /etc/ssh $ETC_DIR
+00 06 * * 1 root rsync -a /etc/exports $ETC_DIR
+00 06 * * 1 root rsync -a /etc/fstab $ETC_DIR
+00 06 * * 1 root rsync -a /etc/rc.local $ETC_DIR
+00 06 * * 1 root rsync -a /etc/snapraid.conf $ETC_DIR
+00 06 * * 1 root rsync -a /etc/ranger $ETC_DIR
+00 06 * * 1 root rsync -a /etc/rsyncd.conf $ETC_DIR
+
+## Dotfiles ###
+
+DOT_DIR=</path/to/samba/share/>
+
+00 06 * * 1 root rsync -a /home/<USER>/.profile $DOT_DIR
+00 06 * * 1 root rsync -a /home/<USER>/.tmux.conf $DOT_DIR
+00 06 * * 1 root rsync -a /home/<USER>/.config $DOT_DIR
+00 06 * * 1 root rsync -a /home/<USER>/.bashrc $DOT_DIR
+00 06 * * 1 root rsync -a /home/<USER>/.bash_aliases $DOT_DIR
+00 06 * * 1 root rsync -a /home/<USER>/.ssh $DOT_DIR
+00 06 * * 1 root rsync -a /home/<USER>/.vimrc $DOT_DIR
+00 06 * * 1 root rsync -a /home/<USER>/.vimrc /root/.vimrc
+00 06 * * 1 root rsync -a /home/<USER>/.vim $DOT_DIR
+00 06 * * 1 root rsync -a /home/<USER>/.vim /root/.vim

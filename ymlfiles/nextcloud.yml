@@ -14,19 +14,26 @@ services:
     # Database name: your db name (nextcloud)
     # localhost: mariadb:3306
 
-  ## To fix "bigint" issue:
-    # docker exec -it nextcloud sh
-    # sudo -u abc php /config/www/nextcloud/occ db:convert-filecache-bigint
-    # exit
+## Fix headers by editing ${USERDIR}/docker/nextcloud/www/nextcloud/config/config.php
+  ## Add these lines within the config array:
+  # 'forwarded_for_headers' => 
+  # array (
+  #   0 => 'HTTP_X_FORWARDED_FOR',
+  # ),
 
-  # Redis setup in config.php: (Optional)
-    # 'memcache.local' => '\OC\Memcache\APCu',
-    # 'memcache.distributed' => '\OC\Memcache\Redis',
-    # 'memcache.locking' => '\OC\Memcache\Redis',
-    # 'redis' => array(
-    #     'host' => 'redis',
-    #     'port' => 6379,
-    # ),
+## If you have the "bigint" issue:
+  # docker exec -it nextcloud sh
+  # sudo -u abc php /config/www/nextcloud/occ db:convert-filecache-bigint
+  # exit
+
+## If you have a Redis server you can connect to it in ${USERDIR}/docker/nextcloud/www/nextcloud/config/config.php: (Optional)
+  ## Add the following lines after " 'memcache.local' => '\\OC\\Memcache\\APCu', "
+  # 'memcache.distributed' => '\\OC\\Memcache\\Redis',
+  # 'memcache.locking' => '\\OC\\Memcache\\Redis',
+  # 'redis' => array(
+  #     'host' => 'redis',
+  #     'port' => 6379,
+  # ),
     
   nextcloud:
     container_name: nextcloud
@@ -60,7 +67,11 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.frontend.redirect.permanent=true"
+      - "traefik.frontend.redirect.regex=https://(.*)/.well-known/(card|cal)dav"
+      - "traefik.frontend.redirect.replacement=https://$$1/remote.php/dav/"
 
 ## OnlyOffice - Document Server for NextCloud
   # Add ONLYOFFICE to NextCloud and enter server address in settings

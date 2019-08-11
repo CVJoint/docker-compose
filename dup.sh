@@ -5,6 +5,17 @@
 
   ## Check logs with:
     # docker logs -tf --tail="50" <container name>
+  
+  ## Normal Use:
+    # In the terminal enter:
+    # bash dup.sh <service>
+    # 
+    # Example to start traefik container/docker-compose script:
+    # bash dup.sh traefik
+
+  ## Optional Use:
+    # Uncomment lines below and bring up specific batches of containers with:
+    # bash dup.sh
 
     echo""
     echo "...$1 up..."

@@ -1,5 +1,16 @@
 #!/bin/bash
 
+  ## Normal Use:
+    # In the terminal enter:
+    # bash ddown.sh <service>
+    # 
+    # Example to stop traefik container/docker-compose script:
+    # bash ddown.sh traefik
+    
+  ## Optional Use:
+    # Uncomment lines below and shut down specific batches of containers with:
+    # bash ddown.sh
+
 echo""
 echo "...$1 down..."
 echo""
