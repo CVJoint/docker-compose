@@ -48,18 +48,19 @@ After editing the file, make sure it was picked up by cron and there were no err
 
 `sudo tail -f /var/log/syslog`
 
-The cron daemon will scan once per minute for any changes the the /etc/cron.d folder. Within a minute or two you should see an output like:
+The cron daemon will scan once per minute for any changes to the /etc/cron.d folder. Within a minute or two you should see an output like:
 
 `cron[6488]: (*system*rsync_backups) RELOAD (/etc/cron.d/rsync_backups)`
 
 If there's an error you might see something like:
 
-```cron[6488]: (*system*rsync_backups) RELOAD (/etc/cron.d/rsync_backups)
+```
+cron[6488]: (*system*rsync_backups) RELOAD (/etc/cron.d/rsync_backups)
 cron[6488]: Error: bad minute; while reading /etc/cron.d/rsync_backups
 cron[6488]: (*system*rsync_backups) ERROR (Syntax error, this crontab file will be ignored)
 ```
 
-I got that output when I tried to turn the backup time into a variable and the backup would no longer  run.
+I got that output when I tried to turn the backup time into a variable and the backup would no longer run :-(
 
 I hope you find this useful!
 
