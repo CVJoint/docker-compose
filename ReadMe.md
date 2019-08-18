@@ -12,17 +12,11 @@ Place these files in your home directory, and in the terminal enter:
 
   `bash dup.sh <service>`
  
-Example to start traefik container/docker-compose script:
+You can start multiple containers/docker-compose scripts at the same time; for example:
 
-  `bash dup.sh traefik`
- 
-## Optional Use:
+  `bash dup.sh traefik bitwarden plex`
 
-Create custom groups of containers by uncommenting/modifying the **dup.sh** file and bring all of them up with:
-
-  `bash dup.sh`
-
-Normally I will simply type `bash du + Tab` or `bash dd + Tab` and then the service I want to bring them up and down. You could choose different file names, or enter aliases to make the command a bit simpler, but this has been working for me so far.
+Normally I will simply type `bash du + Tab` or `bash dd + Tab` and then the services I want to bring up or down. You could choose different file names, or enter aliases to make the command a bit simpler, but this has been working for me so far.
 
 This method allows for easy control and flexibility over which containers are running, and saves me from having to comment out several lines within a single docker-compose.yml. I like to think that it 'containerizes your containers' and allows you to work on a single file, which has been much simpler to modify.
 

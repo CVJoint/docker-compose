@@ -8,20 +8,23 @@
   
   ## Normal Use:
     # In the terminal enter:
-    # bash dup.sh <service>
+    # bash dup.sh <service> <service> <service>... etc
     # 
     # Example to start traefik container/docker-compose script:
-    # bash dup.sh traefik
+    # bash dup.sh traefik bitwarden plex
 
   ## Optional Use:
     # Uncomment lines below and bring up specific batches of containers with:
     # bash dup.sh
 
-    echo""
-    echo "...$1 up..."
-    echo""
-
-    docker-compose -f "/home/$USER/docker/ymlfiles/$1.yml" -p $1 up -d
+CONTAINERS="$@"
+for c in $CONTAINERS
+do
+  echo""
+  echo "...$c up..."
+  echo""
+  docker-compose -f "/home/$USER/docker/ymlfiles/$c.yml" -p $c up -d
+  done
 
 #    docker-compose -f ~/docker/ymlfiles/pihole.yml -p pihole up -d
 #    docker-compose -f ~/docker/ymlfiles/openvpn.yml -p openvpn up -d

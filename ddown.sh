@@ -2,20 +2,23 @@
 
   ## Normal Use:
     # In the terminal enter:
-    # bash ddown.sh <service>
+    # bash ddown.sh <service> <service> <service>... etc
     # 
     # Example to stop traefik container/docker-compose script:
-    # bash ddown.sh traefik
+    # bash ddown.sh traefik 
     
   ## Optional Use:
     # Uncomment lines below and shut down specific batches of containers with:
     # bash ddown.sh
 
-echo""
-echo "...$1 down..."
-echo""
-
-docker-compose -f "/home/$USER/docker/ymlfiles/$1.yml" -p $1 down
+CONTAINERS="$@"
+for c in $CONTAINERS
+do
+  echo""
+  echo "...$c down..."
+  echo""
+  docker-compose -f "/home/$USER/docker/ymlfiles/$c.yml" -p $c down
+  done
 
 #    docker-compose -f ~/docker/ymlfiles/pihole.yml -p pihole down
 #    docker-compose -f ~/docker/ymlfiles/openvpn.yml -p openvpn down
