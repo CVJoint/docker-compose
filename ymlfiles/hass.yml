@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+
+## Home Assistant - Home Automation Hub
+  hass:
+    container_name: hass
+    image: homeassistant/home-assistant
+    restart: always
+#    network_mode: host
+    privileged: true
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "8123:8123"
+    volumes:
+      - ${USERDIR}/docker/hass:/config
+    environment:
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=hass"
+      - "traefik.frontend.rule=Host:hass.${DOMAINNAME}"
+      - "traefik.port=8123"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=hass.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
+      - "traefik.frontend.headers.frameDeny=true"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

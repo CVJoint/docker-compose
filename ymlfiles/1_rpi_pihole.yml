@@ -63,14 +63,13 @@ services:
       - ~/docker/pihole/scripts/cron.d/fetchFilterLists:/etc/cron.d/fetchFilterLists
       - ~/docker/pihole/scripts/cron.d/gravityOptimise:/etc/cron.d/gravityOptimise
       - ~/docker/pihole/scripts/cron.d/generateGravityWildcards:/etc/cron.d/generateGravityWildcards
-      - ~/docker/shared:/shared
     environment:
       - TZ=America/Detroit
-      - ServerIP=192.168.1.200 # (My Host IP)
+      - ServerIP=192.168.1.3 # (My Host IP)
       - IPv6=False
       - WEBPASSWORD=${PIHOLE_PASSWORD}
       - DNS1=127.0.0.1
-      - DNS2=172.20.200.102
+      - DNS2=172.20.200.102 # Unbound IP
 
 ## Unbound - DNS Server
 
@@ -109,7 +108,7 @@ services:
 
   unbound:
     container_name: unbound
-    build: ./buildfiles/unbound
+    image: mvance/unbound-rpi
     image: pihole_unbound
     restart: always
 #    depends_on:

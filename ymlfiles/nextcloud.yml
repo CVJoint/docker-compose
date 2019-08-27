@@ -14,9 +14,9 @@ services:
     # Database name: your db name (nextcloud)
     # localhost: mariadb:3306
 
-## Fix headers by editing ${USERDIR}/docker/nextcloud/www/nextcloud/config/config.php
+## If you have header issues in the settings dashboard, fix by editing ${USERDIR}/docker/nextcloud/www/nextcloud/config/config.php
   ## Add these lines within the config array:
-  # 'forwarded_for_headers' => 
+  # 'forwarded_for_headers' =>
   # array (
   #   0 => 'HTTP_X_FORWARDED_FOR',
   # ),
@@ -34,7 +34,7 @@ services:
   #     'host' => 'redis',
   #     'port' => 6379,
   # ),
-    
+
   nextcloud:
     container_name: nextcloud
     image: linuxserver/nextcloud
@@ -42,11 +42,10 @@ services:
     networks:
       - traefik_proxy
 #    ports:
-#      - "443:443"
+#      - "7443:443"
     volumes:
-      - ${USERDIR}/NextCloud:/data
+      - /mnt/storage/files/nextcloud:/data
       - ${USERDIR}/docker/nextcloud:/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -89,8 +88,7 @@ services:
     volumes:
       - onlyoffice_logs:/var/log/onlyoffice
       - onlyoffice_fonts:/usr/share/fonts/truetype/custom
-      - /etc/timezone:/etc/timezone:ro
-      - ${USERDIR}/docker/shared:/shared
+      - /etc/localtime:/etc/localtime:ro
     labels:
       - "traefik.enable=true"
       - "traefik.backend=onlyoffice"
@@ -106,7 +104,7 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
-      - "traefik.frontend.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.passHostHeader=true"
 
 volumes:

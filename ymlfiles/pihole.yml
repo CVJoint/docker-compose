@@ -57,43 +57,55 @@ services:
     ports:
       - '53:53/tcp'
       - '53:53/udp'
-#      - '67:67/udp'
+      - '67:67/udp'
       - '9980:80/tcp'
       - '9443:443/tcp'
     volumes:
       - ${USERDIR}/docker/pihole/pihole:/etc/pihole
+#      ## Add dark skin to pihole: https://github.com/thomasbnt/Night_PiHole
+#      - ${USERDIR}/docker/pihole/theme/skin-blue.min.css:/var/www/html/admin/style/vendor/skin-blue.min.css
+#      - ${USERDIR}/docker/pihole/theme/AdminLTE.min.css:/var/www/html/admin/style/vendor/AdminLTE.min.css
       - ${USERDIR}/docker/pihole/resolv.conf/resolv.conf:/etc/resolv.conf:ro
       - ${USERDIR}/docker/pihole/dnsmasq.d:/etc/dnsmasq.d
-      ## Run `touch ${USERDIR}/docker/pihole/pihole.log` before starting pihole
-      - ${USERDIR}/docker/pihole/pihole.log:/var/log/pihole.log
+      ## Run `touch /var/log/docker/pihole.log` before starting pihole
+      - /var/log/docker/pihole.log:/var/log/pihole.log
+      ## More info on these scripts here: https://github.com/mmotti
+#      - ${USERDIR}/docker/pihole/scripts/fetchFilterLists.sh:/usr/local/bin/fetchFilterLists.sh
+#      - ${USERDIR}/docker/pihole/scripts/gravityOptimise.sh:/usr/local/bin/gravityOptimise.sh
+#      - ${USERDIR}/docker/pihole/scripts/generateGravityWildcards.sh:/usr/local/bin/generateGravityWildcards.sh
+#      - ${USERDIR}/docker/pihole/scripts/whitelist.sh:/usr/local/bin/whitelist.sh
+#      - ${USERDIR}/docker/pihole/scripts/cron.d/fetchFilterLists:/etc/cron.d/fetchFilterLists
+#      - ${USERDIR}/docker/pihole/scripts/cron.d/gravityOptimise:/etc/cron.d/gravityOptimise
+#      - ${USERDIR}/docker/pihole/scripts/cron.d/generateGravityWildcards:/etc/cron.d/generateGravityWildcards
+#      - ${USERDIR}/docker/pihole/scripts/cron.d/whitelist:/etc/cron.d/whitelist
     environment:
       - TZ=${TZ}
       - ServerIP=${HOST_IP}
       - IPv6=False
-#      - PROXY_LOCATION=pihole2
-#      - VIRTUAL_HOST=pihole2.${DOMAINNAME}
-#      - VIRTUAL_PORT=80
       - WEBPASSWORD=${PIHOLE_PASSWORD}
+      - VIRTUAL_HOST=phole.${DOMAINNAME}
       - DNS1=127.0.0.1
-      - DNS2=192.168.50.102
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.backend=pihole2"
-#      - "traefik.port=80"
-#      # Access admin page at pihole2.${DOMAINNAME}
-#      - "traefik.frontend.rule=Host:pihole2.${DOMAINNAME};AddPrefix:/admin
-#      - "traefik.frontend.headers.SSLRedirect=true"
-#      - "traefik.frontend.headers.STSSeconds=315360000"
-#      - "traefik.frontend.headers.browserXSSFilter=true"
-#      - "traefik.frontend.headers.contentTypeNosniff=true"
-#      - "traefik.frontend.headers.forceSTSHeader=true"
-#      - "traefik.frontend.headers.SSLHost=pihole2.${DOMAINNAME}"
-#      - "traefik.frontend.headers.SSLForceHost=true"
-#      - "traefik.frontend.headers.STSIncludeSubdomains=true"
-#      - "traefik.frontend.headers.STSPreload=true"
-#      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
-#      - "traefik.frontend.headers.frameDeny=true"
-#      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - DNS2=192.168.50.102 # Unbound IP
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=phole"
+      - "traefik.frontend.rule=Host:phole.${DOMAINNAME};AddPrefix:/admin"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=phole.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 
 ## Unbound - DNS Server
@@ -135,8 +147,8 @@ services:
     container_name: unbound
     image: mvance/unbound
     restart: always
-    depends_on:
-      - stubby
+#    depends_on:
+#      - stubby
     networks:
       pi_net:
         ipv4_address: 192.168.50.102
@@ -144,7 +156,6 @@ services:
 #      - '53:53'
     volumes:
       - ${USERDIR}/docker/pihole/unbound:/opt/unbound/etc/unbound
-      - ${USERDIR}/docker/shared:/shared
 
 
 ##Stubby - Stub Resolver - DNS over TLS
@@ -164,7 +175,6 @@ services:
 ##      - '8053:8053'
 #    volumes:
 #      - ${USERDIR}/docker/pihole/stubby:/opt/stubby/etc/stubby
-#      - ${USERDIR}/docker/shared:/shared
 
 networks:
   pi_net:
