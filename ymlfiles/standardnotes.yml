@@ -3,11 +3,11 @@ services:
 
 ## StandardFile - File Server for Standard Notes
   # Requires a MySQL database. Create with:
-    # docker exec -it mariadb mysql -uroot -p
-    # CREATE DATABASE standardnotes CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
-    # GRANT ALL PRIVILEGES ON standardnotes.* TO 'standardnotes'@'standardfile.traefik_proxy'IDENTIFIED BY '<password>';
-    # FLUSH PRIVILEGES;
-    # exit
+  # docker exec -it mariadb mysql -uroot -p
+  # CREATE DATABASE standardnotes CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
+  # GRANT ALL PRIVILEGES ON standardnotes.* TO 'standardnotes'@'standardfile.traefik_proxy'IDENTIFIED BY '<password>';
+  # FLUSH PRIVILEGES;
+  # exit
   standardfile:
     container_name: standardfile
     image: dryusdan/standardfile
@@ -16,14 +16,12 @@ services:
       - traefik_proxy
 #    ports:
 #      - "3000:3000"
-    volumes:
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - DB_HOST=mariadb
       - DB_PORT=3306
       - DB_DATABASE=standardnotes
       - DB_USERNAME=standardnotes
-      - DB_PASSWORD=<password>
+      - DB_PASSWORD=${MY_PASSWORD}
       - RAILS_ENV=production
       - SECRET_KEY_BASE=use "bundle exec rake secret"
       - RAILS_SERVE_STATIC_FILES=true
@@ -55,8 +53,6 @@ services:
       - traefik_proxy
 #    ports:
 #      - "3000:3000"
-    volumes:
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - config.assets.digest=true
     labels:

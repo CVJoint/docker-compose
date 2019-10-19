@@ -2,7 +2,7 @@ version: "3.7"
 services:
 
 ## Prometheus - Systems and Service Monitoring
-  # docker run --rm --entrypoint cat prom/prometheus /etc/prometheus/prometheus.yml > ${USERDIR}/docker/prometheus/prometheus.yml
+# docker run --rm --entrypoint cat prom/prometheus /etc/prometheus/prometheus.yml > ${USERDIR}/docker/prometheus/prometheus.yml
   prometheus:
     container_name: prometheus
     image: prom/prometheus
@@ -13,7 +13,6 @@ services:
       - "9090:9090"
     volumes:
       - ${USERDIR}/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ${USERDIR}/docker/shared:/shared
     labels:
       - "traefik.enable=true"
       - "traefik.backend=prometheus"

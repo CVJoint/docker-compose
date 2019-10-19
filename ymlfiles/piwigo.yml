@@ -13,7 +13,7 @@ services:
 #     - "80:80"
     volumes:
       - ${USERDIR}/docker/piwigo:/config
-      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Lychee:/pics
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -33,8 +33,11 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 networks:
   traefik_proxy:

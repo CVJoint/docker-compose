@@ -1,6 +1,10 @@
-# docker-compose
+# *Please Note: This repo is archived.*
 
--------
+This is a collection of the various images I tried out while learning how to set up Docker and **Traefik v1**. When converting the docker-compose files for **Traefik v2**, I would copy the .yml file and change the labels applied to the container. You can see my latest configs in my traefik2 repo, but these yml files could still be converted to v2 pretty easily.
+
+---
+
+# docker-compose
 
 My docker-compose setup is managed by two files - **dup.sh** and **ddown.sh**, which I store in my home (aka ${USERDIR}) folder.
 

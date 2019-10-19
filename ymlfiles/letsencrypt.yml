@@ -1,9 +1,9 @@
-version: "3.7"
 services:
 
 ## LetsEncrypt - Certificates
   # Generate .htpasswd files
-  # docker exec -it letsencrypt htpasswd -c /config/nginx/.htpasswd
+  # If you wish to hide your site from search engine crawlers, you may find it useful to add this configuration line to your site config, within the server block, above the line where ssl.conf is included add_header X-Robots-Tag "noindex, nofollow, nosnippet, noarchive";
+  ## docker exec -it letsencrypt htpasswd -c /config/nginx/.htpasswd
   letsencrypt:
     container_name: letsencrypt
     image: linuxserver/letsencrypt
@@ -17,7 +17,6 @@ services:
 #      - "443:443"
     volumes:
       - ${USERDIR}/docker/letsencrypt:/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -26,9 +25,9 @@ services:
       - SUBDOMAINS=wildcard
       - VALIDATION=dns
       - DNSPLUGIN=cloudflare
-      - EMAIL=YOUR EMAIL
-      - DHLEVEL=4096
-      - STAGING=true
+      - EMAIL=$MY_EMAIL
+      - DHLEVEL=2048
+      - STAGING=false #true
     labels:
       - "traefik.enable=true"
       - "traefik.port=443"

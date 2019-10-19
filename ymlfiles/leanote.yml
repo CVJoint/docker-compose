@@ -2,17 +2,14 @@ version: "3.7"
 services:
 
 ## LeaNote - Note App
-    # https://github.com/axboy/docker-leanote/blob/master/README-EN.md
+  # https://github.com/axboy/docker-leanote/blob/master/README-EN.md
   ## To Install:
-    # Start LeaNote and MongoDB Containers
-    # Edit app.conf file in config folder:
-      # sudo nano ${USERDIR}/docker/leanote/config/app.conf
-      # Change the following:
-        # site.url (https://leanote.${DOMAINNAME})
-        # db.host=mongo
-        # also change some of the values in the "app.secret", but keep the length the same
-    # Import LeaNote data to MongoDB:
-      # docker exec -it leanote  mongorestore -h mongo -d leanote --dir /data/leanote/mongodb_backup/leanote_install_data
+  #   1. Start LeaNote and MongoDB Containers
+  #   2. Edit app.conf file in config folder:
+        # sudo nano ${USERDIR}/docker/leanote/config/app.conf
+        # Change site.url (https://leanote.${DOMAINNAME}), db.host=mongo, and change some of the values in the "app.secret", but keep the length the same. Save app.conf file.
+  #   3. Import LeaNote data to MongoDB:
+        # docker exec -it leanote  mongorestore -h mongo -d leanote --dir /data/leanote/mongodb_backup/leanote_install_data
   leanote:
     container_name: leanote
     image: axboy/leanote
@@ -26,7 +23,6 @@ services:
       - ${USERDIR}/docker/leanote/files:/data/leanote/files
       - ${USERDIR}/docker/leanote/upload:/data/leanote/public/upload
       - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/shared:/shared
     labels:
       - "traefik.enable=true"
       - "traefik.backend=leanote"

@@ -3,7 +3,6 @@ services:
 
 ## Postgres - Database
   postgres:
-    hostname: postgres
     container_name: postgres
     image: postgres
     restart: always
@@ -14,7 +13,6 @@ services:
     volumes:
       - ${USERDIR}/docker/postgres:/var/lib/postgresql/data
       - /etc/timezone:/etc/timezone:ro
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - POSTGRES_PASSWORD=${MYSQL_ROOT_PASSWORD}
 
@@ -23,19 +21,20 @@ services:
     container_name: pgadmin
     image: dpage/pgadmin4
     restart: always
+    depends_on:
+      - postgres
     networks:
       - traefik_proxy
 #    ports:
 #      - "80:80"
 #      - "443:443"
-    volumes:
+#    volumes:
 #      - pgadmin_data:/var/lib/pgadmin
 #      - pgadmin_config:/pgadmin4/config_local.py
 #      - pgadmin_servers:/pgadmin4/servers.json
-      - ${USERDIR}/docker/shared:/shared
     environment:
-      - PGADMIN_DEFAULT_EMAIL=YOUR EMAIL
-      - PGADMIN_DEFAULT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - PGADMIN_DEFAULT_EMAIL=${MY_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${MY_PASSWORD}
 #      - PGADMIN_ENABLE_TLS= # Can configure with certs
       - PGADMIN_LISTEN_PORT=80 # Can configure with certs
     labels:
@@ -53,8 +52,11 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 volumes:
   pgadmin_data:

@@ -1,0 +1,44 @@
+version: "3.7"
+services:
+
+## Jackett – Torrent Proxy
+  jackett:
+    container_name: jackett
+    image: linuxserver/jackett
+    restart: always
+    networks:
+      - traefik_proxy
+    ports:
+      - "9117:9117"
+    volumes:
+      - ${USERDIR}/dwnloads/sonarr:/downloads
+      - ${USERDIR}/docker/jackett:/config
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=jackett"
+      - "traefik.frontend.rule=Host:jackett.${DOMAINNAME}"
+      - "traefik.port=9117"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=jackett.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
+      - "traefik.frontend.headers.frameDeny=true"
+#      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+#      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+#      - "traefik.frontend.auth.forward.trustForwardHeader=true"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

@@ -4,28 +4,27 @@ services:
 ## Bitwarden - Password Vault
   bitwarden:
     container_name: bitwarden
-    image: mprasil/bitwarden
+    image: bitwardenrs/server
     restart: always
     networks:
       - traefik_proxy
 #    ports:
-#      - "80:80"
+#      - "8888:80"
     volumes:
       - ${USERDIR}/docker/bitwarden:/data
       - /var/log/docker:/var/log/docker
-      - /etc/timezone:/etc/timezone:ro
-      - ${USERDIR}/docker/shared:/shared
+      - /etc/localtime:/etc/localtime:ro
     environment:
-      - SIGNUPS_ALLOWED=true # Change to false after first login
-      - INVITATIONS_ALLOWED=true # Change to false after first login
+      - SIGNUPS_ALLOWED=false # Change to false after first login
+      - INVITATIONS_ALLOWED=false
       - WEBSOCKET_ENABLED=true
-#      - LOG_FILE=/var/log/docker/bitwarden.log  # Used for fail2ban
+      - LOG_FILE=/var/log/docker/bitwarden.log
       - SMTP_HOST=smtp.gmail.com
-      - SMTP_FROM=YOUR GMAIL ACCOUNT
+      - SMTP_FROM=$SMTP_EMAIL
       - SMTP_PORT=587
       - SMTP_SSL=true
-      - SMTP_USERNAME=YOUR GMAIL ACCOUNT
-      - SMTP_PASSWORD=YOUR GMAIL PASSWORD (or App Password if you use 2FA)
+      - SMTP_USERNAME=$SMTP_EMAIL
+      - SMTP_PASSWORD=$SMTP_PASS
       - DOMAIN=https://bitwarden.${DOMAINNAME}
     labels:
       - "traefik.enable=true"

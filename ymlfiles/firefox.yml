@@ -1,34 +1,39 @@
 version: "3.7"
 services:
 
-## Laverna - Web Notes
-  # No support for iOS
-  # Available at laverna.${DOMAINNAME}/laverna
-  laverna:
-    container_name: laverna
-    image: thklein/laverna
-    restart: always
+## Firefox
+  firefox:
+    container_name: firefox
+    image: jlesage/firefox
+    restart: unless-stopped
     networks:
       - traefik_proxy
 #    ports:
-#      - "80:80"
+#      - "5800:5800"
     volumes:
-      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/docker/firefox:/config
+      - /dev/shm:/dev/shm
+#      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - USER_ID=${PUID}
+      - GROUP_ID=${PGID}
+      - TZ=${TZ}
     labels:
       - "traefik.enable=true"
-      - "traefik.backend=laverna"
-      - "traefik.frontend.rule=Host:laverna.${DOMAINNAME}"
-      - "traefik.port=80"
+      - "traefik.backend=firefox"
+      - "traefik.frontend.rule=Host:firefox.${DOMAINNAME}"
+      - "traefik.port=5800"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.frontend.headers.SSLRedirect=true"
       - "traefik.frontend.headers.STSSeconds=315360000"
       - "traefik.frontend.headers.browserXSSFilter=true"
       - "traefik.frontend.headers.contentTypeNosniff=true"
       - "traefik.frontend.headers.forceSTSHeader=true"
-      - "traefik.frontend.headers.SSLHost=laverna.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLHost=firefox.${DOMAINNAME}"
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
 
 networks:
   traefik_proxy:

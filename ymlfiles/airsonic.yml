@@ -4,22 +4,6 @@ services:
 ## Airsonic - Music Server
   # Login: admin / admin
 
-  ## If you want to use a MySQL database:
-    ## Create a database:
-    # docker exec -it mariadb mysql -uroot -p
-    # CREATE DATABASE airsonic CHARACTER SET = utf8 COLLATE = utf8_general_ci;
-    # GRANT ALL PRIVILEGES ON airsonic.* TO 'airsonic'@'airsonic.traefik_proxy'IDENTIFIED BY 'YOUR PASSWORD';
-    # FLUSH PRIVILEGES;
-    # exit
-  ## Create an "airsonic.properties" file in your config folder and paste the following (change password):
-    # DatabaseMysqlMaxlength=512
-    # DatabaseConfigType=EMBED
-    # DatabaseConfigEmbedDriver=com.mysql.jdbc.Driver
-    # DatabaseConfigEmbedPassword=YOUR PASSWORD
-    # DatabaseConfigEmbedUrl=jdbc:mysql://mariadb:3306/airsonic?sessionVariables=sql_mode=ANSI_QUOTES
-    # DatabaseConfigEmbedUsername=airsonic
-    # DatabaseUsertableQuote=
-    
   airsonic:
     container_name: airsonic
     image: linuxserver/airsonic
@@ -27,23 +11,22 @@ services:
     networks:
       - traefik_proxy
 #    ports:
-#      - "XXXX:4040"
+#      - "4040:4040"
     volumes:
-      - /path/to/music:/music
-      - /path/to/other/music:/media
-      - ${USERDIR}/Airsonic/Podcasts:/podcasts
-      - ${USERDIR}/Airsonic/Playlists:/playlists
-      - ${USERDIR}/docker/airsonic:/config
-      - /etc/timezone:/etc/timezone:ro
-      - ${USERDIR}/docker/shared:/shared
+      - /mnt/storage/music/music:/music:ro
+      - $USERDIR/docker/airsonic/podcasts:/podcasts
+      - $USERDIR/docker/airsonic/playlists:/playlists
+      - $USERDIR/docker/airsonic/config:/config
+#      - $USERDIR/docker/airsonic/config:/app/airsonic/config #Used to change log level for debugging
+      - /etc/localtime:/etc/localtime:ro
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
+      - PUID=$PUID
+      - PGID=$PGID
       - JAVA_OPTS=-Dserver.use-forward-headers=true
     labels:
       - "traefik.enable=true"
       - "traefik.backend=airsonic"
-      - "traefik.frontend.rule=Host:airsonic.${DOMAINNAME}"
+      - "traefik.frontend.rule=Host:airsonic.$DOMAINNAME"
       - "traefik.port=4040"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.frontend.headers.SSLRedirect=true"
@@ -51,11 +34,12 @@ services:
       - "traefik.frontend.headers.browserXSSFilter=true"
       - "traefik.frontend.headers.contentTypeNosniff=true"
       - "traefik.frontend.headers.forceSTSHeader=true"
-      - "traefik.frontend.headers.SSLHost=airsonic.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLHost=airsonic.$DOMAINNAME"
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
-      - "traefik.frontend.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.frontend.headers.customResponseHeaders: Feature-Policy:camera 'none'; fullscreen 'none'; geolocation 'none'; microphone 'none'; payment 'none'; speaker 'none'; usb 'none'; vibrate 'none'; vr 'none';"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
 
 networks:
   traefik_proxy:

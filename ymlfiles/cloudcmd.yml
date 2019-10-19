@@ -1,0 +1,37 @@
+version: "3.7"
+services:
+
+## Cloud Commander - Cloud File Manager
+  cloudcmd:
+    container_name: cloudcmd
+    image: coderaiser/cloudcmd
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "8000:8000"
+    volumes:
+      - ${USERDIR}/docker/cloudcmd:/root
+      - ${USERDIR}/Downloads:/mnt/fs
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=cloudcmd"
+      - "traefik.frontend.rule=Host:cloudcmd.${DOMAINNAME}"
+      - "traefik.port=8000"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=cloudcmd.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

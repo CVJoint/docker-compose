@@ -14,7 +14,6 @@ services:
     volumes:
       - ${USERDIR}/docker/radicale/data:/data
       - ${USERDIR}/docker/radicale/config:/config/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - UID=${PUID}
       - GID=${PGID}

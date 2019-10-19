@@ -14,7 +14,6 @@ services:
       - ${USERDIR}/Lychee:/pictures
       - /etc/localtime:/etc/localtime:ro
       - ${USERDIR}/docker/lychee:/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

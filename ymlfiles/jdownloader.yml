@@ -7,15 +7,17 @@ services:
     image: jlesage/jdownloader-2
     restart: always
     networks:
-      - traefik_proxy
+      traefik_proxy:
+        ipv4_address: 192.168.1.247
+#      - traefik_proxy
 #    ports:
 #      - "XXXX:5800"
 #      - "XXXX:5900"
 #      - "XXXX:3129"
     volumes:
-      - ${USERDIR}/Downloads/JDown:/output
+      - ${USERDIR}/dwnloads/jdown:/output
+      - /mnt/storage/music/music:/music
       - ${USERDIR}/docker/jdownloader:/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - USER_ID=${PUID}
       - GROUP_ID=${PGID}
@@ -23,7 +25,8 @@ services:
       - UMASK_SET=002
       - DISPLAY_WIDTH=1280
       - DISPLAY_HEIGHT=768
-      - VNC_PASSWORD=YOUR PASSWORD
+      - KEEP_APP_RUNNING=1
+#      - VNC_PASSWORD=$MY_PASSWORD
     labels:
       - "traefik.enable=true"
       - "traefik.backend=jdownloader"
@@ -39,8 +42,11 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 networks:
   traefik_proxy:

@@ -1,0 +1,36 @@
+version: "3.7"
+services:
+
+## Jirafeau – File Share
+  jirafeau:
+    container_name: jirafeau
+    image: evanhoucke/jirafeau
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    volumes:
+      - ${USERDIR}/docker/jirafeau:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=jirafeau"
+      - "traefik.frontend.rule=Host:jirafeau.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+#      - "traefik.frontend.headers.SSLRedirect=true"
+#      - "traefik.frontend.headers.STSSeconds=315360000"
+#      - "traefik.frontend.headers.browserXSSFilter=true"
+#      - "traefik.frontend.headers.contentTypeNosniff=true"
+#      - "traefik.frontend.headers.forceSTSHeader=true"
+#      - "traefik.frontend.headers.SSLHost=jirafeau.${DOMAINNAME}"
+#      - "traefik.frontend.headers.SSLForceHost=true"
+#      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+#      - "traefik.frontend.headers.STSPreload=true"
+#      - "traefik.frontend.headers.frameDeny=true"
+#      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

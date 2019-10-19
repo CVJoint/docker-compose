@@ -6,7 +6,7 @@
 
   ## The resolv.conf file was giving me trouble in the pihole container, so here is the workaround:
     # mkdir -p ${USERDIR}/docker/pihole/resolv.conf
-    # nano ${USERDIR}/docker/pihole/resolv.conf/resolv.conf
+    # vim ${USERDIR}/docker/pihole/resolv.conf/resolv.conf
     ## Enter both lines below and save:
     # nameserver 127.0.0.1
     # nameserver 172.20.200.102
@@ -18,11 +18,8 @@
     # https://dbl.oisd.nl/
     ## More info here: https://www.reddit.com/r/pihole/comments/bppug1/introducing_the/
 
-  ## I've added the following whitelist entries (copy domains and paste all at once)
+  ## I've added the following whitelist entry:
     # https://github.com/anudeepND/whitelist/blob/master/domains/whitelist.txt
-    # https://github.com/anudeepND/whitelist/blob/master/domains/referral-sites.txt
-
-  ## I also use the regex list and scripts from https://github.com/mmotti
 
 version: "3.7"
 services:
@@ -56,18 +53,11 @@ services:
       - ~/docker/pihole/dnsmasq.d:/etc/dnsmasq.d
       ## Run `touch ~/docker/pihole/pihole.log` before starting pihole
       - ~/docker/pihole/pihole.log:/var/log/pihole.log
-      ## More info on these scripts here: https://github.com/mmotti
-      - ~/docker/pihole/scripts/fetchFilterLists.sh:/usr/local/bin/fetchFilterLists.sh
-      - ~/docker/pihole/scripts/gravityOptimise.sh:/usr/local/bin/gravityOptimise.sh
-      - ~/docker/pihole/scripts/generateGravityWildcards.sh:/usr/local/bin/generateGravityWildcards.sh
-      - ~/docker/pihole/scripts/cron.d/fetchFilterLists:/etc/cron.d/fetchFilterLists
-      - ~/docker/pihole/scripts/cron.d/gravityOptimise:/etc/cron.d/gravityOptimise
-      - ~/docker/pihole/scripts/cron.d/generateGravityWildcards:/etc/cron.d/generateGravityWildcards
     environment:
-      - TZ=America/Detroit
-      - ServerIP=192.168.1.3 # (My Host IP)
+      - TZ=$TZ
+      - ServerIP=192.168.1.3 # (My/buildfiles/unbound Host IP)
       - IPv6=False
-      - WEBPASSWORD=${PIHOLE_PASSWORD}
+      - WEBPASSWORD=$PIHOLE_PASSWORD
       - DNS1=127.0.0.1
       - DNS2=172.20.200.102 # Unbound IP
 
@@ -76,26 +66,21 @@ services:
   ## Setup folders and files
     # mkdir ${USERDIR}/docker/pihole/unbound
     # sudo chown -R ${USER}:${USER} ${USERDIR}/docker/pihole/unbound
-    # docker run --rm --entrypoint cat mvance/unbound /opt/unbound/etc/unbound/a-records.conf > ${USERDIR}/docker/pihole/unbound/a-records.conf
+    # docker run --rm --entrypoint cat mvance/unbound-rpi /opt/unbound/etc/unbound/a-records.conf > ${USERDIR}/docker/pihole/unbound/a-records.conf
   ## Start container
     # docker exec -it unbound unbound-anchor
   ## Stop container
     # sudo chown -R ${USER}:${USER} ${USERDIR}/docker/pihole/unbound
     # rm ${USERDIR}/docker/pihole/unbound/var/root.key
     # mv ${USERDIR}/docker/pihole/unbound/root.key ${USERDIR}/docker/pihole/unbound/var
-    # wget https://www.internic.net/domain/named.root -O ${USERDIR}/docker/pihole/unbound/var/root.hints
+    # wget https://www.internic.net/domain/named.root -O $~/docker/pihole/unbound/var/root.hints
 
   ## Edit the unbound.conf file:
-  ## Change:
-    # cache-min-ttl: 60
-    # msg-cache-size: 1039635797
-    # rrset-cache-size: 1039635797
-    # In the FORWARD ZONE section, comment out the "forward-addr" lines for Cloudflare and CleanBrowsing, and add:
-    # forward-addr: 172.20.200.103@8053
   ## Add to the bottom of BASIC SETTINGS:
     # root-hints: "/opt/unbound/etc/unbound/var/root.hints"
     # do-ip6: no  ## If you don't want to use IPv6
     # deny-any:yes
+  ## Commnt out any DNS forwarders since we will recursively query the root servers
 
   ## Test that it's working (pihole must be running)
     # docker exec -it pihole dig pi-hole.net @127.0.0.1 -p 53
@@ -109,10 +94,7 @@ services:
   unbound:
     container_name: unbound
     image: mvance/unbound-rpi
-    image: pihole_unbound
     restart: always
-#    depends_on:
-#      - stubby
     networks:
       pi_net:
         ipv4_address: 172.20.200.102
@@ -120,27 +102,6 @@ services:
 #      - '5353:5353'
     volumes:
       - ~/docker/pihole/unbound:/opt/unbound/etc/unbound
-      - ~/docker/shared:/shared
-
-## Stubby - Stub Resolver - DNS over TLS
-
-  ## If stubby folder doesn't exist, create it with:
-    # mkdir ${USERDIR}/docker/pihole/stubby
-  # docker run --rm --entrypoint cat mvance/stubby /opt/stubby/etc/stubby/stubby.yml > ${USERDIR}/docker/pihole/stubby/stubby.yml
-
-#  stubby:
-#   container_name: stubby
-#   build: ./buildfiles/stubby
-#   image: pihole_stubby
-#   restart: always
-#   networks:
-#     pi_net:
-#       ipv4_address: 172.20.200.103
-##   ports:
-##     - '8053:8053'
-#   volumes:
-#     - ~/docker/pihole/stubby:/opt/stubby/etc/stubby
-#     - ~/docker/shared:/shared
 
 networks:
   pi_net:

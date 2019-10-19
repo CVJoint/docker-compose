@@ -3,7 +3,6 @@ services:
 
 ## PrivateBin - Private Pastebin
   privatebin:
-    hostname: privatebin
     container_name: privatebin
     image: jgeusebroek/privatebin
     restart: always
@@ -14,7 +13,6 @@ services:
     volumes:
       - ${USERDIR}/docker/privatebin/data:/privatebin/data
       - ${USERDIR}/docker/privatebin/cfg:/privatebin/cfg
-      - ${USERDIR}/docker/shared:/shared
     labels:
       - "traefik.enable=true"
       - "traefik.backend=privatebin"

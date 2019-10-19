@@ -1,0 +1,53 @@
+version: "3.7"
+services:
+
+## Handbrake - Video Converter
+  handbrake:
+    container_name: handbrake
+    image: jlesage/handbrake
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "XXXX:5800"
+    volumes:
+      - ${USERDIR}/docker/handbrake/config:/config:rw
+      - /mnt/storage:/storage:ro
+      - ${USERDIR}/docker/handbrake/dwnloads:/downloads:ro
+      - ${USERDIR}/docker/handbrake/watch:/watch:rw
+      - ${USERDIR}/docker/handbrake/output:/output:rw
+    environment:
+      - USER_ID=${PUID}
+      - GROUP_ID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+      - DISPLAY_WIDTH=1280
+      - DISPLAY_HEIGHT=768
+      - AUTOMATED_CONVERSION_PRESET=H.265 MKV 480p30
+#      - AUTOMATED_CONVERSION_PRESET=H.265 MKV 1080p30
+      - AUTOMATED_CONVERSION_FORMAT=mkv
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=handbrake"
+      - "traefik.frontend.rule=Host:handbrake.${DOMAINNAME}"
+      - "traefik.port=5800"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=handbrake.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

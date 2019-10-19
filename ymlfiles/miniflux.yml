@@ -14,8 +14,6 @@ services:
       - traefik_proxy
 #    ports:
 #      - "8080:8080"
-    volumes:
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - DATABASE_URL=postgres://miniflux:secret@db/miniflux?sslmode=disable
     labels:

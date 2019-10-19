@@ -12,16 +12,15 @@ services:
 #    ports:
 #      - "53589:53589"
     volumes:
-      - ${USERDIR}/docker/taskwarrior/data:/data
-      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/docker/taskserver/data:/data
     environment:
       - "TASKD_BITS=4096"
       - "TASKD_EXPIRATION=365"
       - "TASKD_ORGANIZATION=My Organization"
       - "TASKD_CN=taskserver.${DOMAINNAME}"
       - "TASKD_COUNTRY=US"
-      - "TASKD_STATE=ENTER STATE"
-      - "TASKD_LOCALITY=ENTER CITY"
+      - "TASKD_STATE=${STATE}"
+      - "TASKD_LOCALITY=${LOCALITY}"
     labels:
       - "traefik.enable=true"
       - "traefik.backend=taskserver"
@@ -51,7 +50,6 @@ services:
 #      - "5678:5678"
     volumes:
       - ${USERDIR}/docker/taskwarrior/task-web:/root/.task
-      - ${USERDIR}/docker/shared:/shared
     environment:
       # Sync server:
       - TASKD_SERVER='taskserver.${DOMAINNAME}'

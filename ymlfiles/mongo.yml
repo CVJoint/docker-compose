@@ -13,22 +13,21 @@ services:
     volumes:
       - ${USERDIR}/docker/mongo:/data/db
       - /etc/timezone:/etc/timezone:ro
-      - ${USERDIR}/docker/shared:/shared
 
 ## Mongo-Express - Database Manager
   mongoexpress:
     container_name: mongoexpress
     image: mongo-express
     restart: always
+    depends_on:
+      - mongo
     networks:
       - traefik_proxy
 #    ports:
 #      - "8081:8081"
-    volumes:
-      - ${USERDIR}/docker/shared:/shared
     environment:
-      - ME_CONFIG_BASICAUTH_USERNAME=USERNAME
-      - ME_CONFIG_BASICAUTH_PASSWORD=PASSWORD
+      - ME_CONFIG_BASICAUTH_USERNAME=$MY_USERNAME
+      - ME_CONFIG_BASICAUTH_PASSWORD=$MY_PASSWORD
     labels:
       - "traefik.enable=true"
       - "traefik.backend=mongoexpress"
@@ -44,8 +43,11 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 networks:
   traefik_proxy:

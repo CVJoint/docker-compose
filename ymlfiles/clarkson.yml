@@ -1,0 +1,45 @@
+version: "3.7"
+services:
+
+## Clarkson – Gas Management
+  clarkson:
+    container_name: clarkson
+    image: linuxserver/clarkson
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "3000:3000"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - MYSQL_HOST=mariadb
+      - MYSQL_USERNAME=clarkson
+      - MYSQL_PASSWORD=$MYSQL_PASSWORD
+      - ENABLE_REGISTRATIONS=false
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=clarkson"
+      - "traefik.frontend.rule=Host:clarkson.${DOMAINNAME}"
+      - "traefik.port=3000"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=clarkson.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

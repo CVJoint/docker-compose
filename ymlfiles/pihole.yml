@@ -42,7 +42,7 @@ services:
 
   ## I also use the regex list and scripts from https://github.com/mmotti
 
-  pihole:
+  phole:
     container_name: pihole
     image: pihole/pihole
     restart: unless-stopped
@@ -50,42 +50,44 @@ services:
       - unbound
     cap_add:
       - NET_ADMIN
+      - NET_RAW
       - NET_BIND_SERVICE
     networks:
-      pi_net:
-        ipv4_address: 192.168.50.101
-    ports:
-      - '53:53/tcp'
-      - '53:53/udp'
-      - '67:67/udp'
-      - '9980:80/tcp'
-      - '9443:443/tcp'
+      traefik_proxy:
+        ipv4_address: 192.168.1.240
+#       ports:
+#      - '53:53/tcp'
+#      - '53:53/udp'
+#      - '67:67/udp'
+#      - '80:80/tcp'
+#      - '443:443/tcp'
     volumes:
       - ${USERDIR}/docker/pihole/pihole:/etc/pihole
 #      ## Add dark skin to pihole: https://github.com/thomasbnt/Night_PiHole
-#      - ${USERDIR}/docker/pihole/theme/skin-blue.min.css:/var/www/html/admin/style/vendor/skin-blue.min.css
-#      - ${USERDIR}/docker/pihole/theme/AdminLTE.min.css:/var/www/html/admin/style/vendor/AdminLTE.min.css
+      - ${USERDIR}/docker/pihole/theme/skin-blue.min.css:/var/www/html/admin/style/vendor/skin-blue.min.css
+      - ${USERDIR}/docker/pihole/theme/AdminLTE.min.css:/var/www/html/admin/style/vendor/AdminLTE.min.css
       - ${USERDIR}/docker/pihole/resolv.conf/resolv.conf:/etc/resolv.conf:ro
       - ${USERDIR}/docker/pihole/dnsmasq.d:/etc/dnsmasq.d
       ## Run `touch /var/log/docker/pihole.log` before starting pihole
       - /var/log/docker/pihole.log:/var/log/pihole.log
       ## More info on these scripts here: https://github.com/mmotti
-#      - ${USERDIR}/docker/pihole/scripts/fetchFilterLists.sh:/usr/local/bin/fetchFilterLists.sh
-#      - ${USERDIR}/docker/pihole/scripts/gravityOptimise.sh:/usr/local/bin/gravityOptimise.sh
-#      - ${USERDIR}/docker/pihole/scripts/generateGravityWildcards.sh:/usr/local/bin/generateGravityWildcards.sh
-#      - ${USERDIR}/docker/pihole/scripts/whitelist.sh:/usr/local/bin/whitelist.sh
-#      - ${USERDIR}/docker/pihole/scripts/cron.d/fetchFilterLists:/etc/cron.d/fetchFilterLists
-#      - ${USERDIR}/docker/pihole/scripts/cron.d/gravityOptimise:/etc/cron.d/gravityOptimise
-#      - ${USERDIR}/docker/pihole/scripts/cron.d/generateGravityWildcards:/etc/cron.d/generateGravityWildcards
-#      - ${USERDIR}/docker/pihole/scripts/cron.d/whitelist:/etc/cron.d/whitelist
+      - ${USERDIR}/docker/pihole/scripts/fetchFilterLists.sh:/usr/local/bin/fetchFilterLists.sh
+      - ${USERDIR}/docker/pihole/scripts/gravityOptimise.sh:/usr/local/bin/gravityOptimise.sh
+      - ${USERDIR}/docker/pihole/scripts/generateGravityWildcards.sh:/usr/local/bin/generateGravityWildcards.sh
+      - ${USERDIR}/docker/pihole/scripts/whitelist.sh:/usr/local/bin/whitelist.sh
+      - ${USERDIR}/docker/pihole/scripts/dupdate.sh:/usr/local/bin/dupdate.sh
+      - ${USERDIR}/docker/pihole/scripts/cron.d/fetchFilterLists:/etc/cron.d/fetchFilterLists
+      - ${USERDIR}/docker/pihole/scripts/cron.d/gravityOptimise:/etc/cron.d/gravityOptimise
+      - ${USERDIR}/docker/pihole/scripts/cron.d/generateGravityWildcards:/etc/cron.d/generateGravityWildcards
+      - ${USERDIR}/docker/pihole/scripts/cron.d/whitelist:/etc/cron.d/whitelist
     environment:
       - TZ=${TZ}
-      - ServerIP=${HOST_IP}
+      - ServerIP=192.168.1.240
       - IPv6=False
       - WEBPASSWORD=${PIHOLE_PASSWORD}
       - VIRTUAL_HOST=phole.${DOMAINNAME}
       - DNS1=127.0.0.1
-      - DNS2=192.168.50.102 # Unbound IP
+      - DNS2=192.168.1.241
     labels:
       - "traefik.enable=true"
       - "traefik.backend=phole"
@@ -106,7 +108,6 @@ services:
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
       - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
       - "traefik.frontend.auth.forward.trustForwardHeader=true"
-
 
 ## Unbound - DNS Server
 
@@ -147,36 +148,15 @@ services:
     container_name: unbound
     image: mvance/unbound
     restart: always
-#    depends_on:
-#      - stubby
     networks:
-      pi_net:
-        ipv4_address: 192.168.50.102
+      traefik_proxy:
+        ipv4_address: 192.168.1.241
 #    ports:
 #      - '53:53'
     volumes:
       - ${USERDIR}/docker/pihole/unbound:/opt/unbound/etc/unbound
 
-
-##Stubby - Stub Resolver - DNS over TLS
-
-  ## If stubby folder doesn't exist, create it with:
-    # mkdir ${USERDIR}/docker/pihole/stubby
-  # docker run --rm --entrypoint cat mvance/stubby /opt/stubby/etc/stubby/stubby.yml > ${USERDIR}/docker/pihole/stubby/stubby.yml
-
-#  stubby:
-#    container_name: stubby
-#    image: mvance/stubby
-#    restart: always
-#    networks:
-#      pi_net:
-#        ipv4_address: 192.168.50.103
-##    ports:
-##      - '8053:8053'
-#    volumes:
-#      - ${USERDIR}/docker/pihole/stubby:/opt/stubby/etc/stubby
-
 networks:
-  pi_net:
+  traefik_proxy:
     external:
-      name: pi_net
+      name: traefik_proxy

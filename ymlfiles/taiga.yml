@@ -14,17 +14,16 @@ services:
 #      - "80:80"
     volumes:
       - ${USERDIR}/docker/taiga/media:/usr/src/taiga-back/media
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - TAIGA_HOSTNAME=taiga.${DOMAINNAME}
       - TAIGA_SSL_BY_REVERSE_PROXY=True
-      - TAIGA_SECRET_KEY=eSM2vj3i529sDkX
+      - TAIGA_SECRET_KEY=${TAIGA_SECRET_KEY}
       - TAIGA_SLEEP=15 # when the db comes up from docker, it is usually too quick
       - TAIGA_ENABLE_EMAIL=False
       - TAIGA_DB_NAME=taiga
       - TAIGA_DB_HOST=postgres
       - TAIGA_DB_USER=postgres
-      - TAIGA_DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - TAIGA_DB_PASSWORD=${MY_PASSWORD}
     labels:
       - "traefik.enable=true"
       - "traefik.backend=taiga"

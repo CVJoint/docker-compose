@@ -1,0 +1,47 @@
+version: "3.7"
+services:
+
+## SFTP - SSH File Transfer Protocol
+
+  # Need to test with server
+
+  # Generate an encrypted password (optional) with:
+  # echo -n "your-password" | docker run -i --rm atmoz/makepasswd --crypt-md5 --clearfrom=-
+  # Possible to add ssh keys. Generate your own with:
+  # ssh-keygen -t ed25519 -f ssh_host_ed25519_key < /dev/null
+  # ssh-keygen -t rsa -b 4096 -f ssh_host_rsa_key < /dev/null
+  sftp:
+    container_name: sftp
+    image: atmoz/sftp
+    restart: always
+    command: test:test
+    networks:
+      -traefik_proxy
+#    ports:
+#      - "22:22"
+    volumes:
+      - ${USERDIR}/Downloads:/home/sample/upload
+#      - /host/id_rsa.pub:/home/foo/.ssh/keys/id_rsa.pub:ro
+#      - /host/id_other.pub:/home/foo/.ssh/keys/id_other.pub:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=sftp"
+      - "traefik.frontend.rule=Host:sftp.${DOMAINNAME}"
+      - "traefik.port=22"
+      - "traefik.docker.network=traefik_proxy"
+#      - "traefik.frontend.headers.SSLRedirect=true"
+#      - "traefik.frontend.headers.STSSeconds=315360000"
+#      - "traefik.frontend.headers.browserXSSFilter=true"
+#      - "traefik.frontend.headers.contentTypeNosniff=true"
+#      - "traefik.frontend.headers.forceSTSHeader=true"
+#      - "traefik.frontend.headers.SSLHost=sftp.${DOMAINNAME}"
+#      - "traefik.frontend.headers.SSLForceHost=true"
+#      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+#      - "traefik.frontend.headers.STSPreload=true"
+#      - "traefik.frontend.headers.frameDeny=true"
+#      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

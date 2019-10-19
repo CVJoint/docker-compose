@@ -1,0 +1,37 @@
+version: "3.7"
+services:
+
+## tinyfilemanager - Simple Directory Index
+  # Login: admin/admin
+  tinyfilemanager:
+    container_name: tinyfilemanager
+    image: puteulanus/tinyfilemanager
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    volumes:
+      - ${USERDIR}/dwnloads:/web/file/test:ro # Location you want to index
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=tinyfilemanager"
+      - "traefik.frontend.rule=Host:tinyfilemanager.${DOMAINNAME}"
+      - "traefik.port=8080"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=tinyfilemanager.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

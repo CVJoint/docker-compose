@@ -13,7 +13,6 @@ services:
     volumes:
       - ${USERDIR}/docker/smokeping/config:/config
       - ${USERDIR}/docker/smokeping/data:/data
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

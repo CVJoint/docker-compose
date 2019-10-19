@@ -11,10 +11,10 @@ services:
     networks:
       - traefik_proxy
 #    ports:
-#      - "80:80"
+#      - "780:80"
+#      - "7443:443"
     volumes:
       - ${USERDIR}/docker/tinyrss:/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -34,8 +34,9 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
-      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+#      - "traefik.frontend.auth.forward.address=http://oauth:4181"
 
 networks:
   traefik_proxy:

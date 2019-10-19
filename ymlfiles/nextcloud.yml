@@ -3,8 +3,8 @@ services:
 
 ## NextCloud – Your Own Cloud Storage
   ## Suggested to create NextCloud database using MariaDB
-    # docker exec -it mariadb mysql -uroot -p
-    # CREATE DATABASE nextcloud CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
+    # docker exec -it mariadb mysql -uroot -p$MYSQL_ROOT_PASSWORD
+    # CREATE DATABASE nextcloud CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
     # GRANT ALL PRIVILEGES ON nextcloud.* TO 'nextcloud'@'nextcloud.traefik_proxy'IDENTIFIED BY '<password>';
     # FLUSH PRIVILEGES;
     # exit
@@ -14,35 +14,38 @@ services:
     # Database name: your db name (nextcloud)
     # localhost: mariadb:3306
 
-## If you have header issues in the settings dashboard, fix by editing ${USERDIR}/docker/nextcloud/www/nextcloud/config/config.php
-  ## Add these lines within the config array:
-  # 'forwarded_for_headers' =>
-  # array (
-  #   0 => 'HTTP_X_FORWARDED_FOR',
-  # ),
+  ## If you have header issues in the settings dashboard, fix by editing ${USERDIR}/docker/nextcloud/www/nextcloud/config/config.php
+    ## Add these lines within the config array:
+    # 'forwarded_for_headers' =>
+    # array (
+    #   0 => 'HTTP_X_FORWARDED_FOR',
+    # ),
 
-## If you have the "bigint" issue:
-  # docker exec -it nextcloud sh
-  # sudo -u abc php /config/www/nextcloud/occ db:convert-filecache-bigint
-  # exit
+  ## If you have the "bigint" issue:
+    # docker exec -it nextcloud sh
+    # sudo -u abc php /config/www/nextcloud/occ db:convert-filecache-bigint
+    # exit
 
-## If you have a Redis server you can connect to it in ${USERDIR}/docker/nextcloud/www/nextcloud/config/config.php: (Optional)
-  ## Add the following lines after " 'memcache.local' => '\\OC\\Memcache\\APCu', "
-  # 'memcache.distributed' => '\\OC\\Memcache\\Redis',
-  # 'memcache.locking' => '\\OC\\Memcache\\Redis',
-  # 'redis' => array(
-  #     'host' => 'redis',
-  #     'port' => 6379,
-  # ),
+  ## If you have a Redis server you can connect to it in ${USERDIR}/docker/nextcloud/www/nextcloud/config/config.php: (Optional)
+    ## Add the following lines after " 'memcache.local' => '\\OC\\Memcache\\APCu', "
+    # 'memcache.distributed' => '\\OC\\Memcache\\Redis',
+    # 'memcache.locking' => '\\OC\\Memcache\\Redis',
+    # 'redis' => array(
+    #     'host' => 'redis',
+    #     'port' => 6379,
+    # ),
 
   nextcloud:
     container_name: nextcloud
     image: linuxserver/nextcloud
     restart: always
     networks:
-      - traefik_proxy
+      traefik_proxy:
+        ipv4_address: 192.168.1.237
 #    ports:
-#      - "7443:443"
+#      - "80:80"
+#      - "8080:8080"
+#      - "443:443"
     volumes:
       - /mnt/storage/files/nextcloud:/data
       - ${USERDIR}/docker/nextcloud:/config
@@ -81,7 +84,8 @@ services:
     tty: "true"
     restart: always
     networks:
-      - traefik_proxy
+      traefik_proxy:
+        ipv4_address: 192.168.1.236
 #    ports:
 #      - "80:80"
 #      - "443:443"

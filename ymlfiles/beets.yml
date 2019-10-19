@@ -14,10 +14,9 @@ services:
 #    ports:
 #      - "8337:8337"
     volumes:
-      - /path/to/music/directory:/music
-      - /path/to/import/directory:/downloads
+      - ${USERDIR}/Music:/music
+      - ${USERDIR}/Downloads/beets:/downloads
       - ${USERDIR}/docker/beets:/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

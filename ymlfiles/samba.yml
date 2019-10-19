@@ -2,7 +2,6 @@ version: "3.7"
 services:
 
 ## Samba - File sharing
-  # Samba share IP is the IP of the server
   samba:
     container_name: samba
     image: dperson/samba
@@ -17,7 +16,7 @@ services:
       - "139:139/tcp"
       - "445:445/tcp"
     volumes:
-      - /location/to/share:/share
+      - $USERDIR:/share
 #      - ${USERDIR}/docker/samba:/etc/samba
     environment:
       - TZ=${TZ}
@@ -26,8 +25,8 @@ services:
       - NMBD=True
       - SMB=True
       - RECYCLE=True
-#      - USER=user;pass
-#      - WORKGROUP=
+      - USER=${MY_USERNAME};$(MY_PASSWORD)
+      - WORKGROUP=test
 
 networks:
   traefik_proxy:

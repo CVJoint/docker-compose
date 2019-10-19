@@ -4,22 +4,25 @@ services:
 ## Emby Media Server
   emby:
     container_name: emby
-    image: emby/embyserver:beta
+    image: emby/embyserver:latest
     restart: always
+    devices:
+     - /dev/dri:/dev/dri
     networks:
       - traefik_proxy
     ports:
       - "8096:8096"
       - "8920:8920"
     volumes:
-      - /path/to/movies:/MOVIES
-      - /path/to/tvshows:/TVSHOWS
-      - /path/to/any/other/content:/ENTER CUSTOM NAME
+      - /mnt/storage/movies:/MOVIES:ro
+      - /mnt/storage/tv:/TVSHOWS:ro
+      - /mnt/storage/concerts:/CONCERTS:ro
+      - /mnt/storage/music/music:/music:ro
       - ${USERDIR}/docker/emby:/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - UID=${PUID}
       - GID=${PGID}
+      - GIDLIST=44
     labels:
       - "traefik.enable=true"
       - "traefik.backend=emby"
@@ -35,8 +38,8 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
-#      - "traefik.frontend.auth.forward.address=http://oauth:4181"
 
 networks:
   traefik_proxy:

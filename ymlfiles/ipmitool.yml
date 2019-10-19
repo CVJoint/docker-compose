@@ -1,0 +1,24 @@
+version: "3.7"
+services:
+
+## IPMI Tool
+  ipmitool:
+    container_name: ipmitool
+    image: kfox1111/ipmitool
+    restart: always
+    privileged: true
+    networks:
+      traefik_proxy:
+        ipv4_address: 192.168.50.43
+    ports:
+      - "7634:7634"
+#      - "443:443"
+#    volumes:
+#      - ${USERDIR}/docker/ipmitool/ipmitool:/usr/bin/ipmitool
+    environment:
+      - TZ=${TZ}
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

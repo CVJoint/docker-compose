@@ -12,7 +12,6 @@ services:
 #      - "5456:5456"
     volumes:
       - ${USERDIR}/docker/twweb/:/localdata
-      - ${USERDIR}/docker/shared:/shared
     environment:
 #      - UID=${PUID}
 #      - GID=${PGID}

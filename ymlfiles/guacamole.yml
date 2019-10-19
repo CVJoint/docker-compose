@@ -2,23 +2,21 @@ version: "3.7"
 services:
 
 ## Install instructions:
-  # Start containers: MariaDB, Guacamole, Guacd (Guacd may be optional)
-  # Run: docker exec -it guacamole cp -R /opt/guacamole/mysql/schema /shared
+# Start containers: MariaDB, Guacamole, Guacd (I think this one is optional)
+# Run: docker exec -it guacamole cp -R /opt/guacamole/mysql/schema /shared
 
-## Create Database:
-  # docker exec -it mariadb mysql -uroot -p
+# Create Database:
+# docker exec -it mariadb mysql -uroot -p
 # Replace password (CHANGEME) and run the following scripts to create Database and User "guacamole"
-  # CREATE DATABASE guacamole CHARACTER SET = utf8 COLLATE = utf8_general_ci;
-  # CREATE USER 'guacamole' IDENTIFIED BY 'CHANGEME';
-  # GRANT SELECT,INSERT,UPDATE,DELETE ON guacamole.* TO 'guacamole'@'%';
-  # FLUSH PRIVILEGES;
-  # exit
+# CREATE DATABASE guacamole CHARACTER SET = utf8 COLLATE = utf8_general_ci;
+# CREATE USER 'guacamole' IDENTIFIED BY 'CHANGEME';
+# GRANT SELECT,INSERT,UPDATE,DELETE ON guacamole.* TO 'guacamole'@'%';
+# FLUSH PRIVILEGES;
+# exit
 
-## Populate Database:
-  # Enter MariaDB container
-    # docker exec -it mariadb bash
-  # Run:
-    # cat /shared/schema/*.sql | mysql -u root -p guacamole
+# Populate Database:
+# Enter MariaDB container: docker exec -it mariadb bash
+# Run: cat /shared/schema/*.sql | mysql -u root -p guacamole
 
 # Navigate to localhost:8080/guacamole or guacamole.${DOMAINNAME}/guacamole
 # Login: guacadmin / guacadmin
@@ -26,7 +24,6 @@ services:
 
 ## Guacd
   guacd:
-    hostname: guacd
     container_name: guacd
     image: guacamole/guacd
     restart: always
@@ -34,16 +31,20 @@ services:
       - traefik_proxy
 #    ports:
 #      - "4822:4822"
-    volumes:
-      - ${USERDIR}/docker/shared:/shared
+
+#    environment:
+#      - GUACD_LOG_LEVEL=warning
+#    volumes:
+#      - /var/lib/guacamole/drive:/drive:rw
+#      - /var/lib/guacamole/record:/record:rw
+#      - /etc/localtime:/etc/localtime:ro
+
 
 ## Guacamole
   guacamole:
     container_name: guacamole
     image: guacamole/guacamole
     restart: always
-    external_links:
-      - mariadb
     networks:
       - traefik_proxy
 #    ports:
@@ -56,11 +57,11 @@ services:
       - MYSQL_HOSTNAME=mariadb
       - MYSQL_DATABASE=guacamole
       - MYSQL_USER=guacamole
-      - MYSQL_PASSWORD=CHANGEME
+      - MYSQL_PASSWORD=${MY_PASSWORD}
     labels:
       - "traefik.enable=true"
       - "traefik.backend=guacamole"
-      - "traefik.frontend.rule=Host:guacamole.${DOMAINNAME}"
+      - "traefik.frontend.rule=Host:guacamole.${DOMAINNAME};AddPrefix:/guacamole"
       - "traefik.port=8080"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.frontend.headers.SSLRedirect=true"
@@ -79,5 +80,3 @@ networks:
   traefik_proxy:
     external:
       name: traefik_proxy
-  default:
-    driver: bridge

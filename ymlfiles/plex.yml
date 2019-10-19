@@ -5,36 +5,31 @@ services:
    #Navigate to (127.0.0.1:32400/web) to reset your server
   plex:
     container_name: plex
-    image: plexinc/pms-docker
+    image: linuxserver/plex
     restart: always
+    devices:
+      - /dev/dri:/dev/dri
+    privileged: true
     networks:
-      - traefik_proxy
+      traefik_proxy:
+        ipv4_address: 192.168.50.200 # Set a static IP for tautulli to connect to
     ports:
-      - "32400:32400/tcp"
-      - "3005:3005/tcp"
-      - "8324:8324/tcp"
-      - "32469:32469/tcp"
+      - "32400:32400"
+      - "32400:32400/udp"
+      - "32469:32469"
+      - "32469:32469/udp"
+      - "5353:5353/udp"
       - "1900:1900/udp"
-      - "32410:32410/udp"
-      - "32412:32412/udp"
-      - "32413:32413/udp"
-      - "32414:32414/udp"
     volumes:
-      - /path/to/movies:/MOVIES
-      - /path/to/tvshows:/TV
-      - /path/to/custom/folder;/MY CUSTOM FOLDER
-      - ${USERDIR}/docker/plex/.plex_tmp:/transcode
+      - /mnt/storage/movies:/MOVIES:ro
+      - /mnt/storage/tv:/TV:ro
+      - /mnt/storage/concerts:/CONCERTS:ro
       - ${USERDIR}/docker/plex:/config
-      - /etc/timezone:/etc/timezone:ro
-      - ${USERDIR}/docker/shared:/shared
     environment:
-      - PLEX_UID=${PUID}
-      - PLEX_GID=${PGID}
+      - PUID=${PUID}
+      - PGID=${PGID}
       - TZ=${TZ}
-#      - PLEX_CLAIM= # https://www.plex.tv/claim/
-      - HOSTNAME="SERVER NAME" # May not be necessary
-#      - ALLOWED_NETWORKS=192.168.0.0/255.255.255.0
-      - ADVERTISE_IP=http://192.168.1.122:32400,https://plex.${DOMAINNAME}:443 # First IP is the server running Plex. I entered the full domain name for the second address
+      - VERSION=docker
     labels:
       - "traefik.enable=true"
       - "traefik.backend=plexms"
@@ -47,9 +42,10 @@ services:
       - "traefik.frontend.headers.contentTypeNosniff=true"
       - "traefik.frontend.headers.forceSTSHeader=true"
       - "traefik.frontend.headers.SSLHost=plex.${DOMAINNAME}"
-      - "traefik.frontend.headers.SSLForceHost=true"
+#      - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
 
 networks:

@@ -11,8 +11,7 @@ services:
 #    ports:
 #      - "80:80"
     volumes:
-      - /path/to/local/folder:/var/www/html:ro # Location you want to index
-      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}:/var/www/html:ro # Location you want to index
     labels:
       - "traefik.enable=true"
       - "traefik.backend=autoindex"

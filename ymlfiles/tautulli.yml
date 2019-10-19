@@ -1,38 +1,42 @@
 version: "3.7"
 services:
 
-## Organizer - Unified HTPC/Home Server Web Interface
-  organizr:
-    container_name: organizr
-    image: organizrtools/organizr-v2
+## Tautulli – Monitoring Plex Usage
+  tautulli:
+    container_name: tautulli
+    image: linuxserver/tautulli
     restart: always
     networks:
       - traefik_proxy
 #    ports:
-#      - "80:80"
+#      - "8181:8181"
     volumes:
-      - ${USERDIR}/docker/organizr:/config
-      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/docker/plex/Library/Application Support/Plex Media Server/Logs:/logs:ro # Plex Log Directory
+      - ${USERDIR}/docker/tautulli/config:/config
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
+      - TZ=${TZ}
     labels:
       - "traefik.enable=true"
-      - "traefik.backend=organizr"
-      - "traefik.frontend.rule=Host:organizr.${DOMAINNAME}"
-      - "traefik.port=80"
+      - "traefik.backend=tautulli"
+      - "traefik.frontend.rule=Host:tautulli.${DOMAINNAME}"
+      - "traefik.port=8181"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.frontend.headers.SSLRedirect=true"
       - "traefik.frontend.headers.STSSeconds=315360000"
       - "traefik.frontend.headers.browserXSSFilter=true"
       - "traefik.frontend.headers.contentTypeNosniff=true"
       - "traefik.frontend.headers.forceSTSHeader=true"
-      - "traefik.frontend.headers.SSLHost=organizr.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLHost=tautulli.${DOMAINNAME}"
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 networks:
   traefik_proxy:

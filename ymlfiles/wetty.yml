@@ -9,13 +9,15 @@ services:
     networks:
       - traefik_proxy
 #    ports:
-#     - "80:80"
+#     - "3000:3000"
+#    volumes:
+#      - ${USERDIR}/.ssh/id_rsa:/root/ssh/id_rsa
     environment:
       - VIRTUAL_HOST=wetty.${DOMAINNAME}
       - VIRTUAL_PORT=3000
-      - REMOTE_SSH_SERVER=192.168.1.125 # IP of server you want to ssh into
+      - REMOTE_SSH_SERVER=192.168.1.13
       - REMOTE_SSH_PORT=22
-      - REMOTE_SSH_USER=YOUR USER
+      - REMOTE_SSH_USER=${MY_USERNAME}
     labels:
       - "traefik.enable=true"
       - "traefik.backend=wetty"
@@ -31,8 +33,11 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 networks:
   traefik_proxy:

@@ -3,24 +3,23 @@ services:
 
 ## Glances - Container and System Monitor
   glances:
-    hostname: glances
     container_name: glances
     image: nicolargo/glances
     pid: host
-    restart: always
+    restart: unless-stopped
     networks:
       - traefik_proxy
 #    ports:
 #      - "61208:61208"
     volumes:
-#      - glances_config:/glances/conf # Use this if you want to add a glances.conf file
+      - glances_config:/glances/conf # Use this if you want to add a glances.conf file
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - GLANCES_OPT=-w
     labels:
       - "traefik.enable=true"
       - "traefik.backend=glances"
-      - "traefik.frontend.rule=Host:glances.${DOMAINNAME}"
+      - "traefik.frontend.rule=Host:glances.$DOMAINNAME"
       - "traefik.port=61208"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.frontend.headers.SSLRedirect=true"
@@ -28,12 +27,18 @@ services:
       - "traefik.frontend.headers.browserXSSFilter=true"
       - "traefik.frontend.headers.contentTypeNosniff=true"
       - "traefik.frontend.headers.forceSTSHeader=true"
-      - "traefik.frontend.headers.SSLHost=glances.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLHost=glances.$DOMAINNAME"
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
+
+volumes:
+  glances_config:
 
 networks:
   traefik_proxy:

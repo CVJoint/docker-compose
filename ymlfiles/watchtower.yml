@@ -4,7 +4,6 @@ services:
 ## Watchtower - Automatic Update of Containers/Apps
   # Consider using the fork kopfkrieg/watchtower
   watchtower:
-    hostname: watchtower
     container_name: watchtower
     image: v2tec/watchtower
     restart: always

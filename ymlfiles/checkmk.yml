@@ -1,0 +1,37 @@
+version: "3.7"
+services:
+
+## CheckMK - IT Monitoring
+  # Login: cmkadmin / omd
+  checkmk:
+    container_name: checkmk
+    image: nlmacamp/check_mk
+    restart: always
+    privileged: "true"
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "XXXX:5000"
+    volumes:
+      - ${USERDIR}/docker/checkmk:/opt/omd/sites
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=checkmk"
+      - "traefik.frontend.rule=Host:checkmk.${DOMAINNAME}"
+      - "traefik.port=5000"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=checkmk.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

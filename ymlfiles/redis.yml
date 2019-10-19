@@ -54,14 +54,14 @@ services:
       - ${USERDIR}/docker/redis/data:/data
       - /etc/timezone:/etc/timezone:ro
 #      - ${USERDIR}/docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ${USERDIR}/docker/shared:/shared
 
 ## Redis Commander - Redis Management Tool
   rediscommander:
-    hostname: rediscommander
     container_name: rediscommander
     image: rediscommander/redis-commander:latest
     restart: always
+    depends_on:
+      - redis
     networks:
       - traefik_proxy
 #    ports:
@@ -83,8 +83,11 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 networks:
   traefik_proxy:

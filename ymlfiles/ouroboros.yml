@@ -5,7 +5,6 @@ services:
   # https://hub.docker.com/r/pyouroboros/ouroboros/
   # https://github.com/pyouroboros/ouroboros/wiki
   ouroboros:
-    hostname: ouroboros
     container_name: ouroboros
     image: pyouroboros/ouroboros
     restart: always
@@ -14,12 +13,14 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
+      - TZ=${TZ}
       - CLEANUP=true
-      - INTERVAL=300
+#      - INTERVAL=3600
+      - CRON="0 4 * * *"
       - LOG_LEVEL=info
       - SELF_UPDATE=true
       - IGNORE=mongo influxdb postgres mariadb
-      - TZ=${TZ}
+      - NOTIFIERS=$DISCORD_NOTIFY # Discord Webhook URL
 
 networks:
   traefik_proxy:

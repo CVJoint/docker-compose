@@ -1,0 +1,19 @@
+version: "3.7"
+services:
+
+## Network UPS Tool
+  nut:
+    container_name: nut
+    image: kmlucy/docker-nut
+    restart: always
+    networks:
+      - traefik_proxy
+    ports:
+      - "3493:3493"
+#    volumes:
+#      - ${USERDIR}/docker/nut:/etc/nut
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

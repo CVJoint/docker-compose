@@ -16,7 +16,6 @@ services:
       - dokuwiki_plugins:/dokuwiki/lib/plugins
       - dokuwiki_tpl:/dokuwiki/lib/tpl
       - dokuwiki_logs:/var/log
-      - ${USERDIR}/docker/shared:/shared
     labels:
       - "traefik.enable=true"
       - "traefik.backend=dokuwiki"

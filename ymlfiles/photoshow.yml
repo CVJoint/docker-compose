@@ -14,7 +14,6 @@ services:
       - ${USERDIR}/docker/photoshow/config:/config
       - ${USERDIR}/Pictures:/Pictures:ro
       - photoshow_thumbs:/Thumbs
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

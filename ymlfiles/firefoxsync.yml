@@ -1,0 +1,42 @@
+version: "3.7"
+services:
+
+## Firefox Sync Server
+  firefoxsync:
+    container_name: firefoxsync
+    image: crazymax/firefox-syncserver
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "5000:5000"
+    volumes:
+      - ${USERDIR}/docker/firefoxsync:/data
+#      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - TZ=${TZ}
+      - FF_SYNCSERVER_PUBLIC_URL=https://firefoxsync.${DOMAINNAME}
+      - FF_SYNCSERVER_SECRET=$FF_SYNCSERVER_SECRET
+      - FF_SYNCSERVER_ALLOW_NEW_USERS=true
+      - FF_SYNCSERVER_FORCE_WSGI_ENVIRON=false
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=firefoxsync"
+      - "traefik.frontend.rule=Host:firefoxsync.${DOMAINNAME}"
+      - "traefik.port=5000"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=firefoxsync.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

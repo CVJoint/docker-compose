@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+
+## Headers
+  # curl -k -X PUT -H "Arbitrary:Header" -d aaa=bbb https://headers.$DOMAINNAME/hello-world
+  headers:
+    container_name: headers
+    image: mendhak/http-https-echo
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+#      - "443:443"
+    volumes:
+      - ${USERDIR}/docker/letsencrypt/etc/letsencrypt/live/${DOMAINNAME}/cert.pem:/app/fullchain.pem
+      - ${USERDIR}/docker/letsencrypt/etc/letsencrypt/live/${DOMAINNAME}/privkey.pem:/app/privkey.pem
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=headers"
+      - "traefik.frontend.rule=Host:headers.${DOMAINNAME}"
+      - "traefik.port=443"
+      - "traefik.protocol=https"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=headers.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
+      - "traefik.frontend.headers.frameDeny=true"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

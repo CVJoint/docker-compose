@@ -1,0 +1,33 @@
+version: "3.7"
+services:
+
+## SnapRAID - Data Backup
+  snapraid:
+    container_name: snapraid
+    image: xagaba/snapraid
+    restart: always
+    privileged: true
+#    networks:
+#      - traefik_proxy
+#    ports:
+#      - "7878:7878"
+    volumes:
+      - /mnt:/mnt
+      - ${USERDIR}/docker/snapraid:/config
+#      - /etc/timezone:/etc/timezone:ro
+#      - /etc/localtime:/etc/localtime:ro
+      - type: bind
+        source: /dev/disk
+        target: /dev/disk
+      - type: bind
+        source: /var/snapraid
+        target: /var/snapraid
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+#networks:
+#  traefik_proxy:
+#    external:
+#      name: traefik_proxy

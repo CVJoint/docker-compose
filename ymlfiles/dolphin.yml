@@ -9,7 +9,7 @@ services:
     container_name: dolphin
     image: aptalca/docker-dolphin
     restart: always
-    privileged: "true"
+    privileged: true
     networks:
       - traefik_proxy
 #    ports:
@@ -18,7 +18,6 @@ services:
     volumes:
       - ${USERDIR}/docker/dolphin:/config:rw
       - ${USERDIR}/Downloads:/mnt:rw
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - USER_ID=${PUID}
       - GROUP_ID=${PGID}

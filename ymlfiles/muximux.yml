@@ -2,7 +2,7 @@ version: "3.7"
 services:
 
 ## Muximux - Homepage
-  # To get this to work you need to open ports on other containers and link to http://localhost, or remove some of the traefik headers on the other containers. Still need to test
+  # To get this to work you need to open ports on other containers and link to http://localhost, or remove some of the traefik headers on the other containers
   muximux:
     container_name: muximux
     image: linuxserver/muximux
@@ -13,7 +13,6 @@ services:
 #      - "80:80"
     volumes:
       - ${USERDIR}/docker/muximux:/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

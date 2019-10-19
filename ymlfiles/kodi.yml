@@ -1,0 +1,29 @@
+version: "3.7"
+services:
+
+## Kodi Headless Media Database
+  kodi:
+    container_name: kodi
+    image: linuxserver/kodi-headless
+    restart: always
+    networks:
+      - traefik_proxy
+    ports:
+      - "4321:8080"
+      - "9090:9090"
+      - "9777:9777/udp"
+    volumes:
+#      - /mnt/storage/movies:/MOVIES:ro
+#      - /mnt/storage/tv:/TVSHOWS:ro
+#      - /mnt/storage/concerts:/CONCERTS:ro
+#      - /mnt/storage/music/music:/music:ro
+      - ${USERDIR}/docker/kodi:/config/.kodi
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

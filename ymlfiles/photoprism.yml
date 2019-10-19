@@ -8,8 +8,6 @@ services:
     container_name: photoprism
     image: photoprism/photoprism
     restart: always
-    external_links:
-      - mariadb
     networks:
       - traefik_proxy
 #    ports:
@@ -18,7 +16,6 @@ services:
       - ${USERDIR}/Photoprism:/srv/photoprism/photos
       - photoprism_cache:/srv/photoprism/cache
       - ${USERDIR}/docker/photoprism/database:/srv/photoprism/database
-      - ${USERDIR}/docker/shared:/shared
     labels:
       - "traefik.enable=true"
       - "traefik.backend=photoprism"

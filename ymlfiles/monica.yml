@@ -30,7 +30,6 @@ services:
 #      - "80:80"
     volumes:
       - ${USERDIR}/docker/monica/storage:/var/www/monica/storage
-      - ${USERDIR}/docker/shared:/shared
     env_file:
       - ${USERDIR}/docker/monica/monica.env
     labels:
@@ -48,6 +47,7 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.passHostHeader=true"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"

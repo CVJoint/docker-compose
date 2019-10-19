@@ -16,7 +16,6 @@ services:
       - ${USERDIR}/docker/mediawiki/images:/var/www/html/images
       # After initial setup, download LocalSettings.php to the correct directory, uncomment the following line, and restart mediawiki
 #      - ${USERDIR}/docker/mediawiki/LocalSettings.php:/var/www/html/LocalSettings.php
-      - ${USERDIR}/docker/shared:/shared
     labels:
       - "traefik.enable=true"
       - "traefik.backend=mediawiki"

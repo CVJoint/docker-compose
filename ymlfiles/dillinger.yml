@@ -10,8 +10,6 @@ services:
       - traefik_proxy
 #    ports:
 #     - "9000:9000"
-    volumes:
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - "BIND_ADDRESS=0.0.0.0"
       - "PORT=9000"

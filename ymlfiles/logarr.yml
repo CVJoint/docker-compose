@@ -4,16 +4,15 @@ services:
 ## Logarr - Log Consolidation Tool
   logarr:
     container_name: logarr
-    image: monitorr/logarr
+    image: monitorr/logarr-alpha
     restart: always
     networks:
       - traefik_proxy
 #    ports:
 #      - "80:80"
     volumes:
-      - ${USERDIR}/docker/logarr/config:/config
-      - ${USERDIR}/docker/logarr/logs:/var/log/logarrlogs
-      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/docker/logarr:/config
+      - /var/log/docker:/var/log/logarrlogs
     environment:
       - TZ=${TZ}
     labels:

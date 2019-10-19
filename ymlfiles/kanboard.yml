@@ -2,18 +2,18 @@ version: "3.7"
 services:
 
 ## I changed the sqlite db to mysql. First create the database:
-  # docker exec -it mariadb mysql -uroot -p
-  # CREATE DATABASE kanboard CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-  # CREATE USER 'kanboard' IDENTIFIED BY 'CHANGEME';
-  # GRANT ALTER, CREATE, DELETE, DROP, INDEX, INSERT, REFERENCES, SELECT, UPDATE ON kanboard.* TO 'kanboard'@'kanboard.traefik_proxy'IDENTIFIED BY 'CHANGEME';
-  # FLUSH PRIVILEGES;
-  # exit
+# docker exec -it mariadb mysql -uroot -p
+# CREATE DATABASE kanboard CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+# CREATE USER 'kanboard' IDENTIFIED BY 'CHANGEME';
+# GRANT ALTER, CREATE, DELETE, DROP, INDEX, INSERT, REFERENCES, SELECT, UPDATE ON kanboard.* TO 'kanboard'@'kanboard.traefik_proxy'IDENTIFIED BY 'CHANGEME';
+# FLUSH PRIVILEGES;
+# exit
 
 ## Create custom config:
   # mkdir ${USERDIR}/docker/kanboard
   # docker run --rm --entrypoint cat kanboard/kanboard /var/www/app/config.default.php > ${USERDIR}/docker/kanboard/config.php
 
-## Change the following parameters in your config file
+## Change the following parameters in the
   # ('DB_DRIVER', 'mysql')
   # ('DB_USERNAME', 'kanboard')
   # ('DB_PASSWORD', 'CHANGEME')
@@ -28,6 +28,8 @@ services:
     container_name: kanboard
     image: kanboard/kanboard
     restart: always
+    external_links:
+      - mariadb
     networks:
       - traefik_proxy
 #    ports:
@@ -37,7 +39,6 @@ services:
       - kanboard_plugins:/var/www/app/plugins
       - kanboard_ssl:/etc/nginx/ssl
       - ${USERDIR}/docker/kanboard/config.php:/var/www/app/config.php
-      - ${USERDIR}/docker/shared:/shared
 #    environment:
 #      - REVERSE_PROXY_DEFAULT_DOMAIN=http://kanboard.${DOMAINNAME}
     labels:

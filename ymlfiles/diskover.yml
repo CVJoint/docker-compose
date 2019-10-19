@@ -1,4 +1,4 @@
-version: "3.7"
+version: "2"
 services:
 
 ## Add Redis
@@ -8,6 +8,7 @@ services:
     container_name: diskover
     image: linuxserver/diskover
     restart: always
+    mem_limit: 4096m
     depends_on:
       - elasticsearch
     networks:
@@ -17,9 +18,8 @@ services:
 #      - "9181:9181"
 #      - "9999:9999"
     volumes:
-      - ${USERDIR}/docker/diskover/config:/config
-      - ${USERDIR}/Downloads:/data:ro
-      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/docker/diskover:/config
+      - /mnt/storage:/data:ro
     environment:
       - PUID=1000
       - PGID=1000
@@ -29,8 +29,8 @@ services:
       - ES_HOST=elasticsearch
       - ES_PORT=9200
       - ES_USER=elastic
-      - ES_PASS=changeme # I think I had to keep the password as changeme for it to work... still need to test
-      - INDEX_NAME=diskover
+      - ES_PASS=changeme
+      - INDEX_NAME=diskover-
       - RUN_ON_START=true
       - USE_CRON=true
     labels:
@@ -48,14 +48,16 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 ## Elasticsearch - Search and Analytics Engine
-  # On linux machine you need to enter the command below because the standard value of 65530 is too low (error in logs)
-    # sudo sysctl -w vm.max_map_count=262144
+  # On linux machine you need to enter (sudo sysctl -w vm.max_map_count=262144) because the standard value of 65530 is too low (error in logs)
   # If you get the warning "Failed to create node environment" you need to make sure permissions are set to 1000:1000 on the data folder
-    # sudo chown -R 1000:1000 ${USERDIR}/docker/elasticsearch/
+  # sudo chown -R 1000:1000 ${USERDIR}/docker/elasticsearch/
   elasticsearch:
     container_name: elasticsearch
     image: docker.elastic.co/elasticsearch/elasticsearch:5.6.9
@@ -70,8 +72,7 @@ services:
         soft: '-1'
         hard: '-1'
     volumes:
-      - ${USERDIR}/docker/elasticsearch/data:/usr/share/elasticsearch/data
-      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/docker/elasticsearch:/usr/share/elasticsearch/data
     environment:
       - bootstrap.memory_lock=true
       - cluster.name=docker-cluster

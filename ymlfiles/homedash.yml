@@ -15,11 +15,10 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${USERDIR}/docker/homedash:/data
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - UID=${PUID}
       - GID=${PGID}
-      - SALT=kQg51CAccpWsgoeuNt7hq7NK3CqN95yHYrz4Hh5l5IVGlVGsNpKMmcDOuUCE0LgT
+      - SALT=${SALT}
     labels:
       - "traefik.enable=true"
       - "traefik.backend=homedash"

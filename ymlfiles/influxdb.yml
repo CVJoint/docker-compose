@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+
+## Follow install instructions below
+
+## InfluxDB
+  # Create config file:
+  # mkdir ${USERDIR}/docker/influxdb
+  # docker run --rm influxdb influxd config > ${USERDIR}/docker/influxdb/influxdb.conf
+  # Consider adding a database (optional)
+  influxdb:
+    container_name: influxdb
+    image: influxdb
+    restart: always
+    network_mode: host
+#    networks:
+#      traefik_proxy:
+#        ipv4_address: 192.168.50.40
+#    ports:
+#      - "8086:8086"
+#      - "8083:8083"
+    volumes:
+      - data_influxdb:/var/lib/influxdb
+      - ${USERDIR}/docker/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+#    environment:
+#      - TZ
+#      - INFLUXDB_CONFIG_PATH=/etc/influxdb/influxdb.conf
+#      - INFLUXDB_DB=influx
+#      - INFLUXDB_ADMIN_USER=influx
+#      - INFLUXDB_ADMIN_PASSWORD=${MYSQL_PASSWORD}
+#      - INFLUXDB_USER=telegraf
+#      - INFLUXDB_USER_PASSWORD=${MYSQL_PASSWORD}
+
+volumes:
+  data_influxdb:
+
+#networks:
+#  traefik_proxy:
+#    external:
+#      name: traefik_proxy

@@ -1,0 +1,47 @@
+version: "3.7"
+services:
+
+## Picard – Music Management
+  picard:
+    container_name: picard
+    image: mikenye/picard
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "5800:5800"
+    volumes:
+      - /mnt/storage/music:/storage:rw
+      - ${USERDIR}/docker/picard:/config:rw
+    environment:
+      - USER_ID=${PUID}
+      - GROUP_ID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+      - DISPLAY_WIDTH=1280
+      - DISPLAY_HEIGHT=768
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=picard"
+      - "traefik.frontend.rule=Host:picard.${DOMAINNAME}"
+      - "traefik.port=5800"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=picard.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

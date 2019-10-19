@@ -21,18 +21,20 @@ services:
 #      - "8999:8999"
 #      - "8999:8999/udp"
     volumes:
-      - /path/to/downloads:/downloads
+      - ${USERDIR}/dwnloads:/downloads
+      - /mnt/storage:/mnt/storage
       - ${USERDIR}/docker/qbittorrent:/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - VPN_ENABLED=yes
-      - VPN_USERNAME=
-      - VPN_PASSWORD=
+      - VPN_USERNAME=${PIA_USER}
+      - VPN_PASSWORD=${PIA_PASS}
       - LAN_NETWORK=192.168.1.0/24
       - NAME_SERVERS=1.1.1.1,1.0.0.1
       - UMASK=002
+      ## Add these to your .ovpn file:
+#      - VPN_OPTIONS=--inactive 3600 --ping 10 --ping-exit 60 --auth-nocache
     labels:
       - "traefik.enable=true"
       - "traefik.backend=qbittorrent"
@@ -48,8 +50,11 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 networks:
   traefik_proxy:

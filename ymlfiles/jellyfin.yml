@@ -4,19 +4,25 @@ services:
 ## Jellyfin - Media Server
   jellyfin:
     container_name: jellyfin
-    image: jellyfin/jellyfin:latest
+    image: linuxserver/jellyfin
     restart: always
+    devices:
+     - /dev/dri:/dev/dri
     networks:
       - traefik_proxy
     ports:
-      - "8096:8096"
-      - "8920:8920"
+      - "8097:8096"
+      - "8921:8920"
     volumes:
-      - /path/to/movies:/MOVIES
-      - /path/to/tvshows:/TVSHOWS
-      - /path/to/custom/folder:/YOUR CUSTOM FOLDER
+      - /mnt/storage/movies:/MOVIES:ro
+      - /mnt/storage/tv:/TVSHOWS:ro
+      - /mnt/storage/concerts:/CONCERTS:ro
       - ${USERDIR}/docker/jellyfin:/config
-      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK_SET=022
     labels:
       - "traefik.enable=true"
       - "traefik.backend=jellyfin"
@@ -32,6 +38,7 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
 
 networks:

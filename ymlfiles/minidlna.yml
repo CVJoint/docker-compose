@@ -1,0 +1,26 @@
+version: "3.7"
+services:
+
+## MiniDLNA - DLNA/uPNP Media Server
+  minidlna:
+    container_name: minidlna
+    image: geekduck/minidlna
+    restart: always
+#    network_mode: host
+    networks:
+      - traefik_proxy
+    ports:
+      - "8200:8200"
+      - "1901:1900/udp"
+    volumes:
+      - /mnt/storage/movies:/opt/movies:ro
+      - /mnt/storage/tv:/opt/tv:ro
+      - /mnt/storage/concerts:/opt/concerts:ro
+      - /mnt/storage/pics:/opt/pics:ro
+      - /mnt/storage/music/music:/opt/music:ro
+      - ${USERDIR}/docker/minidlna/minidlna.conf:/etc/minidlna.conf
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

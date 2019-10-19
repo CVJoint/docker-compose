@@ -1,0 +1,44 @@
+version: "3.7"
+services:
+
+## Ampache - Music Server
+  ampache:
+    container_name: ampache
+    image: ampache/ampache
+    restart: always
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "8080:80"
+    volumes:
+      - $USERDIR/Music:/media
+      - $USERDIR/docker/ampache/config:/var/www/config
+      - ampache_themes:/var/www/themes
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=ampache"
+      - "traefik.frontend.rule=Host:ampache.$DOMAINNAME"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=ampache.$DOMAINNAME"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
+
+volumes:
+  ampache_themes:
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

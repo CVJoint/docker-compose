@@ -14,14 +14,12 @@ services:
     volumes:
       - ${USERDIR}/docker/filerun/html:/var/www/html
       - ${USERDIR}/docker/filerun/user-files:/user-files
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - FR_DB_HOST=mariadb
       - FR_DB_PORT=3306
       - FR_DB_NAME=filerun
       - FR_DB_USER=filerun
-      - FR_DB_PASS=YOUR DB PASSWORD
-      # I'm not sure what the apache part is used for
+      - FR_DB_PASS=${MYSQL_PASSWORD}
       - APACHE_RUN_USER=www-data
       - APACHE_RUN_USER_ID=33
       - APACHE_RUN_GROUP=www-data

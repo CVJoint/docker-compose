@@ -3,7 +3,7 @@ services:
 
 ## Krusader - File Browser
   # Click vnc.html
-  # Documents available at ${USERDIR}/docfiles
+  # Documents available at ${USERDIR}
   krusader:
     container_name: krusader
     image: binhex/arch-krusader
@@ -17,13 +17,12 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - krusader_config:/config/
-      - /path/to/your/files:${USERDIR}/docfiles
-      - ${USERDIR}/docker/shared:/shared
+      - /:${USERDIR}:ro
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TEMP_FOLDER=/config/temp
-      - VNC_PASSWORD=YOUR PASSWORD
+      - VNC_PASSWORD=${MY_PASSWORD}
       - UMASK=002
     labels:
       - "traefik.enable=true"
@@ -40,9 +39,12 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.passHostHeader=true"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 volumes:
   krusader_config:

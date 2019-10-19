@@ -3,7 +3,7 @@ services:
 
 ## Firefly - Finance Manager
   # Create a unique App Key which is a random 32 character string
-    # date +%s | sha256sum | base64 | head -c 32 ; echo
+  # date +%s | sha256sum | base64 | head -c 32 ; echo
   firefly:
     container_name: firefly
     image: jc5x/firefly-iii
@@ -16,20 +16,19 @@ services:
       - ${USERDIR}/docker/firefly/export:/var/www/firefly-iii/storage/export
       - ${USERDIR}/docker/firefly/upload:/var/www/firefly-iii/storage/upload
       - /etc/timezone:/etc/timezone:ro
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - FF_DB_CONNECTION=mysql
       - FF_DB_HOST=mariadb
       - FF_DB_PORT=3306
       - FF_DB_NAME=firefly
       - FF_DB_USER=firefly
-      - FF_DB_PASSWORD=YOUR DB PASSWORD
-      - FF_APP_KEY=ODc1ZTM2ZTg0ODJhYmEyNDMzNmI5NTk1 # Enter unique key
+      - FF_DB_PASSWORD=${MYSQL_PASSWORD}
+      - FF_APP_KEY=${APP_KEY}
       - FF_APP_ENV=local
       - APP_LOG_LEVEL=debug
       - APP_URL=https://firefly.${DOMAINNAME}
       - TRUSTED_PROXIES=**
-      - SITE_OWNER=YOUR EMAIL ADDRESS
+      - SITE_OWNER=${MY_EMAIL}
     labels:
       - "traefik.enable=true"
       - "traefik.backend=firefly"
@@ -45,9 +44,12 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.passHostHeader=true"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 networks:
   traefik_proxy:

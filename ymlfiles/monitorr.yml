@@ -12,7 +12,6 @@ services:
 #      - "80:80"
     volumes:
       - ${USERDIR}/docker/monitorr:/app
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

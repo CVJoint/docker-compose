@@ -3,88 +3,74 @@ services:
 
 ## Follow install instructions below
 
-## InfluxDB
-  ## Create config file:
-    # mkdir ${USERDIR}/docker/influxdb
-    # docker run --rm influxdb influxd config > ${USERDIR}/docker/influxdb/influxdb.conf
-  # Consider adding a database (optional, haven't tested)
-  influxdb:
-    container_name: influxdb
-    image: influxdb
-    restart: always
-    networks:
-      - traefik_proxy
-#    ports:
-#      - "8086:8086"
-#      - "8083:8083"
-    volumes:
-      - influxdb_data:/var/lib/influxdb
-      - ${USERDIR}/docker/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
-      - ${USERDIR}/docker/shared:/shared
-#    environment:
-#      - INFLUXDB_DB=influx
-#      - INFLUXDB_ADMIN_USER=influx
-#      - INFLUXDB_ADMIN_PASSWORD=
-#      - INFLUXDB_USER=telegraf
-#      - INFLUXDB_USER_PASSWORD=
-
 ## Telegraf
-  ## Create config file:
-    # mkdir ${USERDIR}/docker/telegraf
-    # docker run --rm telegraf -sample-config > ${USERDIR}/docker/telegraf/telegraf.conf
+  # Create config file:
+  # mkdir ${USERDIR}/docker/telegraf
+  # docker run --rm telegraf -sample-config > ${USERDIR}/docker/telegraf/telegraf.conf
 
-  ## Modify config file:
-    # Under [[outputs.influxdb]] uncomment and change:
-      # urls = ["http://influxdb:8086"]
-      # database = "telegraf"
+  # Modify config file:
+  # Edit the config and just enable the Docker portion (uncomment the “[[inputs.docker]]” section until the timeout)
+  # Under [[outputs.influxdb]] uncomment and change:
+  # urls = ["http://influxdb:8086"]
+  # database = "telegraf"
 
   # Input Plugins: https://docs.influxdata.com/telegraf/v1.9/plugins/inputs/
   # Output Plugins: https://docs.influxdata.com/telegraf/v1.9/plugins/outputs/
   telegraf:
     container_name: telegraf
-    image: telegraf
+    image: ytzelf/telegraf # telegraf # gibletron/telegraf-ipmitool
     restart: always
-    depends_on:
-      - influxdb
-    networks:
-      - traefik_proxy
+#    depends_on:
+#      - influxdb
+    privileged: true
+    network_mode: "container:influxdb"
+#    network_mode: host
+#    networks:
+#      traefik_proxy:
+#        ipv4_address: 192.168.50.44
 #    ports:
-#      - "8125:8125"
+#      - "8125:8125/udp"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /dev:/dev
+      - ${USERDIR}/docker/telegraf/resolv.conf:/etc/resolv.conf:ro
       - ${USERDIR}/docker/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+#      - /usr/bin/ipmitool:/usr/bin/ipmitool
+      - /var/run/utmp:/var/run/utmp
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /etc:/host/etc:ro
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - HOST_PROC=/host/proc
       - HOST_SYS=/host/sys
       - HOST_ETC=/host/etc
 
 ## Grafana - Data Visualizer
-  ## Create file structure:
-    # mkdir ${USERDIR}/docker/grafana
-    # mkdir ${USERDIR}/docker/grafana/config
-  ## Create config files
-    # docker run --rm --entrypoint cat grafana/grafana /etc/grafana/grafana.ini > ${USERDIR}/docker/grafana/config/grafana.ini
-  ## Login: admin / admin
+  # Create file structure:
+  # mkdir -p ${USERDIR}/docker/grafana/config
+  # Create config files
+  # docker run --rm --entrypoint cat grafana/grafana /etc/grafana/grafana.ini > ${USERDIR}/docker/grafana/etc/grafana.ini
+  # Login: admin / admin
   grafana:
     container_name: grafana
     image: grafana/grafana
     restart: always
     networks:
-      - traefik_proxy
-#    ports:
-#      - "3000:3000"
+      traefik_proxy:
+        ipv4_address: 192.168.1.246
+    ports:
+      - "3000:3000"
     volumes:
-      - grafana_data:/var/lib/grafana
-      - ${USERDIR}/docker/grafana/config/grafana.ini:/etc/grafana/grafana.ini:ro
-      - ${USERDIR}/docker/grafana/logs:/var/log/grafana
-      - ${USERDIR}/docker/shared:/shared
+      - data_grafana:/var/lib/grafana
+      - ${USERDIR}/docker/grafana/etc/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ${USERDIR}/docker/grafana/log:/var/log/grafana
     environment:
+#      - PGID
+#      - PUID
+#      - TZ
       - GF_SERVER_ROOT_URL=https://grafana.${DOMAINNAME}
       - GF_AUTH_BASIC_ENABLED=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
     labels:
       - "traefik.enable=true"
       - "traefik.backend=grafana"
@@ -101,12 +87,15 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
 volumes:
-  influxdb_data:
-  grafana_data:
+#  data_influxdb:
+  data_grafana:
 
 networks:
   traefik_proxy:

@@ -13,10 +13,9 @@ services:
     volumes:
       - ${USERDIR}/Music:/music
       - /etc/timezone:/etc/timezone:ro
-      - ${USERDIR}/docker/shared:/shared
     environment:
-      - USER=USERNAME
-      - PASSWORD=PASSWORD
+      - USER=$MY_USERNAME
+      - PASSWORD=$MY_PASSWORD
     labels:
       - "traefik.enable=true"
       - "traefik.backend=mstream"

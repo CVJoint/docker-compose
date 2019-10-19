@@ -2,13 +2,12 @@ version: "3.7"
 services:
 
 ## Healthchecks - Cron Monitor
-  # Need to manually add "ALLOWED_HOSTS" to bottom of local_settings file
-  # Also add REGISTRATION_OPEN="True" for first login
+  # Need to manually add "ALLOWED_HOSTS, SECRET_KEY, and REGISTRATION_OPEN" to bottom of local_settings file
   # Additional config settings here:
   # https://github.com/healthchecks/healthchecks
   healthchecks:
     container_name: healthchecks
-    image: lsiocommunity/healthchecks
+    image: linuxserver/healthchecks
     restart: always
     networks:
       - traefik_proxy
@@ -16,22 +15,21 @@ services:
       - "8000:8000"
     volumes:
       - ${USERDIR}/docker/healthchecks:/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
 #      - TZ=${TZ}
-      - SITE_ROOT=https://healthchecks.${DOMAINNAME} # I typed out full domain name here, not sure if necessary
+      - SITE_ROOT=https://healthchecks.${DOMAINNAME}
       - SITE_NAME=healthchecks
-      - DEFAULT_FROM_EMAIL=healthchecks@${DOMAINNAME}
+      - DEFAULT_FROM_EMAIL=${MY_EMAIL}
       - EMAIL_HOST=smtp.gmail.com
       - EMAIL_PORT=587
-      - EMAIL_HOST_USER=YOUR GMAIL
-      - EMAIL_HOST_PASSWORD=YOUR GMAIL PASSWORD
+      - EMAIL_HOST_USER=${MY_EMAIL}
+      - EMAIL_HOST_PASSWORD=${MY_PASSWORD}
       - EMAIL_USE_TLS=True
-#      - ALLOWED_HOSTS = ["*"]
-#      - SECRET_KEY = "ODgwNGRiZDdiNWRmZjg5Y2I2MWMwYTBj"
-#      - REGISTRATION_OPEN = "True"
+##      - ALLOWED_HOSTS = ["*"] # healthchecks.${DOMAINNAME},https://healthchecks.${DOMAINNAME}
+##      - SECRET_KEY = "${SECRET_KEY}"
+##      - REGISTRATION_OPEN = "True"
     labels:
       - "traefik.enable=true"
       - "traefik.backend=healthchecks"
@@ -47,8 +45,9 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
-      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+#      - "traefik.frontend.auth.forward.address=http://oauth:4181"
 
 networks:
   traefik_proxy:

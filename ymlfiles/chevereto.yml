@@ -3,7 +3,7 @@ services:
 
 ## Chevereto - Image Hosting
   # Fix permissions:
-  # sudo chmod -R 766 ${USERDIR}/docker/chevereto/images
+  # sudo chmod -R 766 ${USERDIR}/docker/chevereto
   chevereto:
     container_name: chevereto
     image: nmtan/chevereto
@@ -13,12 +13,11 @@ services:
 #    ports:
 #     - "80:80"
     volumes:
-      - ${USERDIR}/docker/chevereto/images:/var/www/html/images:rw
-      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/docker/chevereto:/var/www/html/images:rw
     environment:
       - CHEVERETO_DB_HOST=mariadb:3306
       - CHEVERETO_DB_USERNAME=chevereto
-      - CHEVERETO_DB_PASSWORD=YOUR DB PASSWORD
+      - CHEVERETO_DB_PASSWORD=${MYSQL_PASSWORD}
       - CHEVERETO_DB_NAME=chevereto
       - CHEVERETO_DB_PREFIX=chv_
     labels:

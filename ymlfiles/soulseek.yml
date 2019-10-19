@@ -6,16 +6,16 @@ services:
     container_name: soulseek
     image: realies/soulseek
     restart: always
-    networks:
-      - traefik_proxy
+    network_mode: "container:qbittorrent"
+#    networks:
+#      - traefik_proxy
 #    ports:
 #      - "6080:6080"
     volumes:
-      - ${USERDIR}/docker/soulseek/SoulseekQt:/root/.SoulseekQt
-      - ${USERDIR}/docker/soulseek/chatlog:/root/Soulseek Chat Log
-      - ${USERDIR}/Music:/root/Soulseek Downloads
+      - soulseekdata:/root
+      - /mnt/storage/music/to_be_tagged:/root/Soulseek Downloads
+      - /mnt/storage/music/music:/Music
       - /etc/timezone:/etc/timezone:ro
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - resolution=1280x720
     labels:
@@ -33,10 +33,16 @@ services:
       - "traefik.frontend.headers.SSLForceHost=true"
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
-      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
+      - "traefik.frontend.headers.customFrameOptionsValue=SAMEORIGIN"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
 
-networks:
-  traefik_proxy:
-    external:
-      name: traefik_proxy
+volumes:
+  soulseekdata:
+
+#networks:
+#  traefik_proxy:
+#    external:
+#      name: traefik_proxy

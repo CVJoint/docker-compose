@@ -6,13 +6,14 @@ services:
     container_name: seagull
     image: tobegit3hub/seagull
     restart: always
+#    command: -H unix:///var/run/docker.sock
     networks:
       - traefik_proxy
 #    ports:
 #      - "10086:10086"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${USERDIR}/docker/shared:/shared
+#      - portainer_data:/data # Change to local directory if you want to save/transfer config locally
     environment:
       - TZ=${TZ}
     labels:
@@ -32,6 +33,9 @@ services:
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
+
+#volumes:
+#  portainer_data:
 
 networks:
   traefik_proxy:

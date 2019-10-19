@@ -1,0 +1,66 @@
+version: "3.7"
+services:
+
+## Logitech Media Server - Music Server
+  # Login: admin / admin
+  ## If you want to use a MySQL database:
+  # Create a database:
+  # docker exec -it mariadb mysql -uroot -p
+  # CREATE DATABASE airsonic CHARACTER SET = utf8 COLLATE = utf8_general_ci;
+  # GRANT ALL PRIVILEGES ON airsonic.* TO 'airsonic'@'airsonic.traefik_proxy'IDENTIFIED BY '<password>';
+  # FLUSH PRIVILEGES;
+  # exit
+  # Create an "airsonic.properties" file in your config folder and paste the following (change password):
+  # DatabaseMysqlMaxlength=512
+  # DatabaseConfigType=EMBED
+  # DatabaseConfigEmbedDriver=com.mysql.jdbc.Driver
+  # DatabaseConfigEmbedPassword=CHANGEME
+  # DatabaseConfigEmbedUrl=jdbc:mysql://mariadb:3306/airsonic?sessionVariables=sql_mode=ANSI_QUOTES
+  # DatabaseConfigEmbedUsername=airsonic
+  # DatabaseUsertableQuote=
+  lms:
+    container_name: lms
+    image: snoopy86/logitechmediaserver
+    restart: always
+    networks:
+      - traefik_proxy
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+      - "3483:3483"
+      - "3483:3483/udp"
+      - "5353:5353/udp"
+      - "9005:9005"
+      - "38863:38863"
+      - "46960:46960"
+    volumes:
+      - /mnt/storage/music/music:/music:ro
+      - ${USERDIR}/docker/lms:/config
+      - /var/run/dbus:/var/run/dbus:rw
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - JAVA_OPTS=-Dserver.use-forward-headers=true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=lms"
+      - "traefik.frontend.rule=Host:lms.${DOMAINNAME}"
+      - "traefik.port=4040"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=lms.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customFrameOptionsValue=SAMEORIGIN"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy

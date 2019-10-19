@@ -1,0 +1,174 @@
+version: "3.7"
+services:
+
+## LibreNMS -
+  # Login: librenms/librenms
+  librenms:
+    container_name: librenms
+    image: librenms/librenms:latest
+    restart: always
+    depends_on:
+      - libre_db
+      - memcached
+      - rrdcached
+      - smtp
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+#      - "514:514/udp" # Syslog ports (Only used if you enabled and run a sidecar syslog-ng container)
+    volumes:
+      - ${USERDIR}/docker/librenms/data:/data
+    environment:
+      - "PUID=${PUID}"
+      - "PGID=${PGID}"
+      - "TZ=${TZ}"
+      - "DB_HOST=libre_db"
+      - "DB_NAME=librenms"
+      - "DB_USER=librenms"
+      - "DB_PASSWORD=${MYSQL_PASSWORD}"
+      - "DB_TIMEOUT=30"
+    env_file:
+      - "${USERDIR}/docker/librenms/librenms.env"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=baikal"
+      - "traefik.frontend.rule=Host:librenms.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=librenms.${DOMAINNAME}"
+      - "traefik.frontend.headers.SSLForceHost=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.auth.forward.address=http://oauth:4181"
+      - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User"
+      - "traefik.frontend.auth.forward.trustForwardHeader=true"
+
+  libre_cron:
+    container_name: libre_cron
+    image: librenms/librenms:latest
+    restart: always
+    depends_on:
+      - librenms
+    networks:
+      - traefik_proxy
+    volumes:
+      - ${USERDIR}/docker/librenms/data:/data
+    environment:
+      - "PUID=${PUID}"
+      - "PGID=${PGID}"
+      - "TZ=${TZ}"
+      - "DB_HOST=libre_db"
+      - "DB_NAME=librenms"
+      - "DB_USER=librenms"
+      - "DB_PASSWORD=${MYSQL_PASSWORD}"
+      - "DB_TIMEOUT=30"
+      - "SIDECAR_CRON=1"
+    env_file:
+      - "${USERDIR}/docker/librenms/librenms.env"
+
+  syslog-ng:
+    container_name: syslog-ng
+    image: librenms/librenms:latest
+    restart: always
+    depends_on:
+      - librenms
+    networks:
+      - traefik_proxy
+    ports:
+      - target: 514
+        published: 514
+        protocol: tcp
+      - target: 514
+        published: 514
+        protocol: udp
+#    volumes:
+#      - ${USERDIR}/docker/librenms/data:/data
+    environment:
+      - "PUID=${PUID}"
+      - "PGID=${PGID}"
+      - "TZ=${TZ}"
+      - "DB_HOST=libre_db"
+      - "DB_NAME=librenms"
+      - "DB_USER=librenms"
+      - "DB_PASSWORD=${MYSQL_PASSWORD}"
+      - "DB_TIMEOUT=30"
+      - "SIDECAR_SYSLOGNG=1"
+    env_file:
+      - "${USERDIR}/docker/librenms/librenms.env"
+
+  libre_db:
+    container_name: libre_db
+    image: mariadb:10.2
+    restart: always
+    networks:
+      - traefik_proxy
+    command:
+      - "mysqld"
+      - "--sql-mode="
+      - "--innodb-file-per-table=1"
+      - "--lower-case-table-names=0"
+      - "--character-set-server=utf8"
+      - "--collation-server=utf8_unicode_ci"
+    volumes:
+      - "${USERDIR}/docker/librenms/db:/var/lib/mysql"
+    environment:
+      - "TZ=${TZ}"
+      - "MYSQL_ALLOW_EMPTY_PASSWORD=yes"
+      - "MYSQL_DATABASE=librenms"
+      - "MYSQL_USER=librenms"
+      - "MYSQL_PASSWORD=${MYSQL_PASSWORD}"
+
+  memcached:
+    container_name: memcached
+    image: memcached:alpine
+    restart: always
+    networks:
+      - traefik_proxy
+    environment:
+      - "TZ=${TZ}"
+
+  rrdcached:
+    container_name: rrdcached
+    image: crazymax/rrdcached
+    restart: always
+    networks:
+      - traefik_proxy
+    volumes:
+      - ${USERDIR}/docker/librenms/rrd/data:/data/db
+      - ${USERDIR}/docker/librenms/rrd/journal:/data/journal
+    environment:
+      - "PUID=${PUID}"
+      - "PGID=${PGID}"
+      - "TZ=${TZ}"
+      - "LOG_LEVEL=LOG_INFO"
+      - "WRITE_TIMEOUT=1800"
+      - "WRITE_JITTER=1800"
+      - "WRITE_THREADS=4"
+      - "FLUSH_DEAD_DATA_INTERVAL=3600"
+
+  smtp:
+    container_name: smtp
+    image: juanluisbaptiste/postfix
+    restart: always
+    networks:
+      - traefik_proxy
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      - "SERVER_HOSTNAME=librenms.${DOMAINNAME}"
+      - "SMTP_SERVER=smtp.gmail.com"
+      - "SMTP_USERNAME=${SMTP_EMAIL}"
+      - "SMTP_PASSWORD=${SMTP_PASS}"
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy
