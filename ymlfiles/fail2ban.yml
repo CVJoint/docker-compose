@@ -26,7 +26,7 @@ services:
       - F2B_MAX_RETRY=1 # Number of failures before a host get banned
       - F2B_IPTABLES_CHAIN=FORWARD # Specifies the iptables chain to which the Fail2Ban rules should be added
       - SSMTP_HOST=smtp.gmail.com
-      - SSMTP_PORT=587
+      - SSMTP_PORT=465
       - SSMTP_USER=$SMTP_EMAIL
       - SSMTP_PASSWORD=$SMTP_PASS
       - SSMTP_TLS=TLS
