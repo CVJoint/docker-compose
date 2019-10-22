@@ -27,5 +27,5 @@ services:
       - SSMTP_PORT=465
       - SSMTP_USER=$SMTP_EMAIL
       - SSMTP_PASSWORD=$SMTP_PASS
-      - SSMTP_TLS=TLS
+      - SSMTP_TLS=YES
       - F2B_ACTION=%(action_mw)s
