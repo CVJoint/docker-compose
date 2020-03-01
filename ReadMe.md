@@ -1,6 +1,4 @@
-# *Please Note: This repo is archived.*
-
-##### You can check out my new repo at: https://github.com/sseifert/docker-compose
+# *This repo is archived.*
 
 This is a collection of the various images I tried out while learning how to set up Docker and **Traefik v1**. When converting the docker-compose files for **Traefik v2**, I would copy the .yml file and change the labels applied to the container. You can see my latest configs in my traefik2 repo, but these yml files could still be converted to v2 pretty easily.
 
