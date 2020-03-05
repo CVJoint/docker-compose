@@ -49,6 +49,8 @@ services:
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.headers.customFrameOptionsValue='allow-from https:${DOMAINNAME}'"
+      - "traefik.frontend.passHostHeader=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181"
       - "traefik.frontend.auth.forward.trustForwardHeader=true"
       - "traefik.frontend.auth.headerField=X-Forwarded-User"
@@ -102,6 +104,8 @@ services:
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex"
       - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.headers.customFrameOptionsValue='allow-from https:${DOMAINNAME}'"
+      - "traefik.frontend.passHostHeader=true"
       - "traefik.frontend.auth.forward.address=http://oauth:4181" # add this to any containers you want to protect (if possible, sometimes mobile apps dont work)
       - "traefik.frontend.auth.forward.authResponseHeaders=X-Forwarded-User" # add this to any containers you want to protect (if possible, sometimes mobile apps dont work)
       - "traefik.frontend.auth.forward.trustForwardHeader=true" # add this to any containers you want to protect (if possible, sometimes mobile apps dont work)
